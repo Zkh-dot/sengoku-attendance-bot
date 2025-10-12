@@ -25,7 +25,9 @@ async def get_user_by_id(client: discord.Client, guild_id: int, user_id: int, db
                 member = None
             except discord.Forbidden:
                 member = None
-
+    liable = 1
+    if member:
+        liable = 0 if (CONSTANTS.RENTOR_NAME in [r.name for r in member.roles if r.name != "@everyone"]) else 1
     try:
         user = await client.fetch_user(user_id)
     except Exception:
@@ -33,7 +35,8 @@ async def get_user_by_id(client: discord.Client, guild_id: int, user_id: int, db
     user = datatypes.User(
         uuid=user_id,
         server_username=member.display_name if member else None,
-        global_username=user.name if user else None
+        global_username=user.name if user else None,
+        liable=liable,
     )
     return user
 
@@ -55,12 +58,17 @@ def check_disband(message: str) -> bool:
             return True
     return False
 
-def points_by_channel(channel_name: int) -> int:
-    if channel_name == 'lfg':
+def points_by_event(event: datatypes.Event) -> int:
+    if event.channel_name == 'lfg':
+        for name in CONSTANTS.GROUP_MAP_NAMES:
+            if name in event.message_text.lower():
+                return CONSTANTS.POINTS_GROUP_MAP
         return CONSTANTS.POINTS_DEFAULT
-    if channel_name == 'pvp':
+    if event.channel_name == 'pvp':
         return CONSTANTS.POINTS_DEFAULT
-    if channel_name == 'pve':
+    if event.channel_name == 'pve':
         return CONSTANTS.POINTS_DEFAULT
-    if 'zvz' in channel_name:
+    if 'zvz' in event.channel_name:
         return CONSTANTS.POINTS_ZVZ
+    if event.channel_name == 'группики':
+        return CONSTANTS.POINTS_GROUP_MAP

@@ -54,7 +54,7 @@ async def analyze_channel(channel_id):
                         event.disband = 1
             event.channel_id = m.channel.id
             event.channel_name = m.channel.name
-            event.points = common.points_by_channel(event.channel_name)
+            event.points = common.points_by_event(event)
             n += 1
             if len(event.mentioned_users) < CONSTANTS.MIN_USERS:
                 event.disband = 1
