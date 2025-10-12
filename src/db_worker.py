@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS EVENTS (
     channel_id INTEGER,
     channel_name TEXT,
     guild_id INTEGER,
+    points INTEGER DEFAULT 0,
     FOREIGN KEY (author_user_id) REFERENCES USERS(uid)
 );
         ''')
@@ -86,8 +87,8 @@ VALUES (?, ?)
     def add_event(self, event: datatypes.Event):
         self.add_user(event.author)
         self.execute('''
-INSERT OR REPLACE INTO EVENTS (message_id, author_user_id, message_text, disband, read_time, channel_id, channel_name, guild_id)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+INSERT OR REPLACE INTO EVENTS (message_id, author_user_id, message_text, disband, read_time, channel_id, channel_name, guild_id, points)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 ''', (
         event.message_id,
         event.author.uuid,
@@ -96,7 +97,8 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         event.read_time.isoformat() if event.read_time else None,
         event.channel_id,
         event.channel_name,
-        event.guild_id
+        event.guild_id,
+        event.points
         ))
         for mu in event.mentioned_users:
             self.add_user(mu)
@@ -104,3 +106,16 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             self.add_branch_message(bm, event.message_id)
         for mu in event.mentioned_users:
             self.add_event_user_link(mu.uuid, event.message_id)
+
+    def get_user(self, uid: int) -> datatypes.User | None:
+        row = self.fetchone('SELECT * FROM USERS WHERE uid=?', (uid,))
+        if row:
+            return datatypes.User(
+                uuid=row[0],
+                server_username=row[1],
+                global_username=row[2],
+                liable=row[3],
+                visible=row[4],
+                timeout=row[5]
+            )
+        return None

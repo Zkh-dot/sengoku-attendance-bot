@@ -38,6 +38,7 @@ class Event:
     read_time: datetime.datetime
     channel_id: int
     channel_name: str
+    points: int = 0
     mentioned_users: list[User]
     branch_messages: list[BranchMessage]
     guild_id: int | None = None
@@ -46,7 +47,8 @@ class Event:
                  mentioned_users: list['User'] = None,
                  author: User = None,
                  channel_id: int | None = None, channel_name: str | None = None,
-                 guild_id: int | None = None):
+                 guild_id: int | None = None,
+                 points: int = 0):
         self.message_id = message_id
         self.message_text = message_text
         self.disband = disband
@@ -57,4 +59,4 @@ class Event:
         self.channel_id = channel_id
         self.channel_name = channel_name
         self.guild_id = guild_id
-
+        self.points = points

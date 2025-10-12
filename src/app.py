@@ -52,32 +52,35 @@ BASE_HTML = """
 """
 
 INDEX_HTML = """
-<h2>Мемберы</h2>
+<h2>Мемберс</h2>
 <table>
   <tr>
-    <th>дискорд ник</th>
-    <th>UID (нажми на меня!)</th>
+    <th>Мембер</th>
+    <th>UID (ссылка)</th>
     <th>Посетил контентов</th>
+    <th>Сумма очков</th>
   </tr>
   {% for row in rows %}
     <tr>
       <td>{{ row['display_name'] or '—' }}</td>
       <td><a href='{{ url_for('user_detail', uid=row['uid']) }}'>{{ row['uid'] }}</a></td>
       <td>{{ row['event_count'] }}</td>
+      <td>{{ row['total_points'] or 0 }}</td>
     </tr>
   {% endfor %}
 </table>
 """
 
 USER_HTML = """
-<h2>Записи</h2>
+<h2>Посещенные контенты</h2>
 <table>
   <tr>
     <th>Кол</th>
     <th>Канал</th>
     <th>Бот увидел</th>
-    <th>Дизбанд (✗ - диз / ✓ - собралось)</th>
-    <th>Ссылка на кол</th>
+    <th>Дизбанд (✗ / ✓)</th>
+    <th>Очки</th>
+    <th>Ссылка</th>
   </tr>
   {% for e in events %}
     <tr>
@@ -85,6 +88,7 @@ USER_HTML = """
       <td>{{ e['channel_name'] or '—' }}</td>
       <td>{{ e['read_time'] or '—' }}</td>
       <td style="text-align:center; font-weight:bold;">{% if e['disband'] == 1 %}✗{% else %}✓{% endif %}</td>
+      <td>{{ e['points'] or 0 }}</td>
       <td><a href='https://discord.com/channels/{{ e['guild_id'] }}/{{ e['channel_id'] }}/{{ e['message_id'] }}' target='_blank'>Открыть</a></td>
     </tr>
   {% endfor %}
@@ -109,16 +113,17 @@ def index():
     q = db.execute("""
         SELECT u.uid,
                COALESCE(NULLIF(u.global_username, ''), u.server_username) AS display_name,
-               COUNT(DISTINCT CASE WHEN e.disband != 1 THEN e.message_id END) AS event_count
+               COUNT(DISTINCT CASE WHEN e.disband != 1 THEN e.message_id END) AS event_count,
+               COALESCE(SUM(CASE WHEN e.disband != 1 THEN e.points ELSE 0 END), 0) AS total_points
         FROM USERS u
         LEFT JOIN EVENTS_TO_USERS etu ON etu.ds_uid = u.uid
         LEFT JOIN EVENTS e ON e.message_id = etu.message_id
         GROUP BY u.uid
-        ORDER BY event_count DESC, display_name COLLATE NOCASE ASC
+        ORDER BY total_points DESC, event_count DESC, display_name COLLATE NOCASE ASC
     """)
     rows = q.fetchall()
     html = render_template_string(INDEX_HTML, rows=rows)
-    return render_template_string(BASE_HTML, title='мемберс х контент', content=html)
+    return render_template_string(BASE_HTML, title='Мемберсы vs Посещения', subtitle=f'Всего мемберсов: {len(rows)}', content=html)
 
 @app.route('/user/<int:uid>')
 def user_detail(uid):
@@ -128,7 +133,7 @@ def user_detail(uid):
     if not user:
         abort(404)
     eq = db.execute("""
-        SELECT e.message_id, e.guild_id, e.channel_id, e.channel_name, e.message_text, e.read_time, e.disband
+        SELECT e.message_id, e.guild_id, e.channel_id, e.channel_name, e.message_text, e.read_time, e.disband, e.points
         FROM EVENTS_TO_USERS etu
         JOIN EVENTS e ON e.message_id = etu.message_id
         WHERE etu.ds_uid = ?
@@ -136,7 +141,7 @@ def user_detail(uid):
     """, (uid,))
     events = eq.fetchall()
     html = render_template_string(USER_HTML, events=events)
-    return render_template_string(BASE_HTML, title=f"{user['display_name'] or 'без имени'}", subtitle=f"{len(events)} контентов отхожено (✓ — собралось, ✗ — дизбанд)", content=html)
+    return render_template_string(BASE_HTML, title=f"{user['display_name'] or 'без имени'}", subtitle=f"Сходил на {len(events)} контента (✓ — проведенные, ✗ — дизбанднутые)", content=html)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

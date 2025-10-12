@@ -2,8 +2,12 @@ import discord
 import CONSTANTS
 import datatypes
 import re
+import db_worker as dbw
 
-async def get_user_by_id(client: discord.Client, guild_id: int, user_id: int) -> datatypes.User:
+async def get_user_by_id(client: discord.Client, guild_id: int, user_id: int, db_worker: dbw.DBWorker = None) -> datatypes.User:
+    user = db_worker.get_user(user_id) if db_worker else None
+    if user:
+        return user
     guild = client.get_guild(guild_id)
     if guild is None:
         try:
@@ -34,12 +38,12 @@ async def get_user_by_id(client: discord.Client, guild_id: int, user_id: int) ->
     return user
 
 
-async def users_by_message(message: discord.Message, client: discord.Client) -> list[datatypes.User]:
+async def users_by_message(message: discord.Message, client: discord.Client, db_worker: dbw.DBWorker = None) -> list[datatypes.User]:
     if '<@' in message.content:
         mentioned_ids = set(int(m) for m in re.findall(CONSTANTS.NAME_LINE, message.content))
         users = []
         for uid in mentioned_ids:
-            user = await get_user_by_id(client, message.guild.id, uid)
+            user = await get_user_by_id(client, message.guild.id, uid, db_worker)
             users.append(user)
         return users
     return []
@@ -50,3 +54,13 @@ def check_disband(message: str) -> bool:
         if word in CONSTANTS.DISBAND_MESSAGES:
             return True
     return False
+
+def points_by_channel(channel_name: int) -> int:
+    if channel_name == 'lfg':
+        return CONSTANTS.POINTS_DEFAULT
+    if channel_name == 'pvp':
+        return CONSTANTS.POINTS_DEFAULT
+    if channel_name == 'pve':
+        return CONSTANTS.POINTS_DEFAULT
+    if 'zvz' in channel_name:
+        return CONSTANTS.POINTS_ZVZ

@@ -35,10 +35,10 @@ async def analyze_channel(channel_id):
         async for m in channel.history(limit=None, after=after, before=before, oldest_first=True):
             event = datatypes.Event(
                 message_id=m.id,
-                author=await common.get_user_by_id(client, m.guild.id, m.author.id),
+                author=await common.get_user_by_id(client, m.guild.id, m.author.id, db_worker),
                 message_text=m.content,
                 read_time=datetime.now(timezone.utc),
-                mentioned_users=await common.users_by_message(m, client),
+                mentioned_users=await common.users_by_message(m, client, db_worker),
                 guild_id=m.guild.id if m.guild else None
             )
             event.disband = int(common.check_disband(event.message_text))
@@ -54,6 +54,7 @@ async def analyze_channel(channel_id):
                         event.disband = 1
             event.channel_id = m.channel.id
             event.channel_name = m.channel.name
+            event.points = common.points_by_channel(event.channel_name)
             n += 1
             if len(event.mentioned_users) < CONSTANTS.MIN_USERS:
                 event.disband = 1
