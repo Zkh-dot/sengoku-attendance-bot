@@ -59,16 +59,7 @@ def check_disband(message: str) -> bool:
     return False
 
 def points_by_event(event: datatypes.Event) -> int:
-    if event.channel_name == 'lfg':
-        for name in CONSTANTS.GROUP_MAP_NAMES:
-            if name in event.message_text.lower():
-                return CONSTANTS.POINTS_GROUP_MAP
-        return CONSTANTS.POINTS_DEFAULT
-    if event.channel_name == 'pvp':
-        return CONSTANTS.POINTS_DEFAULT
-    if event.channel_name == 'pve':
-        return CONSTANTS.POINTS_DEFAULT
-    if 'zvz' in event.channel_name:
-        return CONSTANTS.POINTS_ZVZ
-    if event.channel_name == 'группики':
-        return CONSTANTS.POINTS_GROUP_MAP
+    for name in CONSTANTS.GROUP_MAP_NAMES:
+        if name in event.message_text.lower():
+            return CONSTANTS.POINTS_GROUP_MAP
+    return CONSTANTS.CHANNELS.get(event.channel_id, 0)
