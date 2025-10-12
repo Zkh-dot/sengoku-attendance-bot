@@ -1,0 +1,86 @@
+import os
+import asyncio
+import discord
+from datetime import datetime, timedelta, timezone
+import dotenv
+import datatypes
+import common
+import CONSTANTS
+import db_worker as dbw
+
+dotenv.load_dotenv()
+
+TOKEN = os.getenv("DISCORD_TOKEN")
+CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID", "0"))
+
+intents = discord.Intents.none()
+intents.guilds = True
+intents.message_content = True
+client = discord.Client(intents=intents)
+
+db_worker = dbw.DBWorker()
+
+async def analyze_channel(channel_id):
+    try:
+        if not channel_id:
+            raise RuntimeError("set DISCORD_CHANNEL_ID")
+        channel = client.get_channel(channel_id)
+        if channel is None:
+            channel = await client.fetch_channel(channel_id)
+
+        now = datetime.now(timezone.utc)
+        after = now - timedelta(hours=CONSTANTS.FROM_HOURS)
+        before = now - timedelta(hours=CONSTANTS.TO_HOURS)
+        n = 0
+        async for m in channel.history(limit=None, after=after, before=before, oldest_first=True):
+            event = datatypes.Event(
+                message_id=m.id,
+                author=await common.get_user_by_id(client, m.guild.id, m.author.id),
+                message_text=m.content,
+                read_time=datetime.now(timezone.utc),
+                mentioned_users=await common.users_by_message(m, client),
+                guild_id=m.guild.id if m.guild else None
+            )
+            event.disband = int(common.check_disband(event.message_text))
+            if m.thread:
+                async for mm in m.thread.history(limit=None, oldest_first=True):
+                    bm = datatypes.BranchMessage(
+                        message_id=mm.id,
+                        message_text=mm.content,
+                        read_time=datetime.now(timezone.utc)
+                    )
+                    event.branch_messages.append(bm)
+                    if common.check_disband(bm.message_text) and mm.author.id == m.author.id:
+                        event.disband = 1
+            event.channel_id = m.channel.id
+            event.channel_name = m.channel.name
+            n += 1
+            if len(event.mentioned_users) < CONSTANTS.MIN_USERS:
+                event.disband = 1
+            db_worker.add_event(event)
+            try:
+                if event.disband == 1:
+                    await m.add_reaction(CONSTANTS.REACTION_NO)
+                else:
+                    await m.add_reaction(CONSTANTS.REACTION_YES)
+            except Exception:
+                pass
+        print(f"dumped {n} messages from {after.isoformat()} to {before.isoformat()}")
+    except Exception as e:
+        import traceback; traceback.print_exc()
+
+
+@client.event
+async def on_ready():
+    print(f"ready: {client.user}")
+    try:
+        for ch in CONSTANTS.CHANNELS:
+            await analyze_channel(ch)
+    except Exception as e:
+        import traceback; traceback.print_exc()
+    finally:
+        await client.close()
+
+if not TOKEN:
+    raise SystemExit("set DISCORD_TOKEN")
+client.run(TOKEN)
