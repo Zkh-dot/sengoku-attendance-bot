@@ -69,6 +69,8 @@ async def analyze_channel(channel_id):
             except Exception:
                 pass
         print(f"dumped {n} messages from {after.isoformat()} to {before.isoformat()}")
+        with open(str(datetime.now().timestamp()) + '.log', 'w', encoding='utf-8') as f:
+            f.write(f"dumped {n} messages from {after.isoformat()} to {before.isoformat()}\n")
     except Exception as e:
         import traceback; traceback.print_exc()
 
