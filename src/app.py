@@ -89,18 +89,18 @@ INDEX_HTML = """
       {% set color = '' %}
       {% if row['liable'] == 0 %}
         {% set color = '#00bfff' %} {# голубой #}
+      {% elif row['liable'] == 2 %}
+        {% set color = '#fc0303' %} {# красный #}
+      {% elif row['liable'] == 3 %}
+        {% set color = '#ffa500' %} {# оранжевый #}
+      {% elif row['liable'] == 4 %}
+        {% set color = '#be03fc' %} {# фиолетовый #}
       {% elif row['is_member'] == 0 %}
         {% set color = '#888888' %} {# серый #}
       {% elif row['total_points'] >= row['need_to_get'] %}
         {% set color = '#00ff88' %} {# зелёный #}
       {% elif row['total_points'] >= row['need_to_get'] * 0.5 %}
         {% set color = '#ffff00' %} {# жёлтый #}
-      {% elif row['liable'] == 3 %}
-        {% set color = '#ffa500' %} {# оранжевый #}
-      {% elif row['liable'] == 4 %}
-        {% set color = '#be03fc' %} {# фиолетовый #}
-      {% elif row['liable'] == 2 %}
-        {% set color = '#fc0303' %} {# красный #}
       {% endif %}
       <tr style="color: {{ color if color else '#e0e0e0' }}">
         <td>{{ row['display_name'] or '—' }}</td>
