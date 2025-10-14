@@ -1,6 +1,6 @@
 DISBAND_MESSAGES = {'дизбанд', 'диз', 'disband', 'dis'}
-FROM_HOURS = 2
-TO_HOURS = 1
+FROM_HOURS = 25
+TO_HOURS = 24
 NAME_LINE = r".*?<@&?(.*?)>.*?"
 REACTION_YES = '✅'
 REACTION_NO = '❌'
