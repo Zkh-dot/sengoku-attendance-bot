@@ -35,7 +35,11 @@ async def get_user_by_id(client: discord.Client, guild_id: int, user_id: int, db
         delta = last_day - member.joined_at
         need_to_get = min(45, int(delta.days * 1.5))
         is_member = 1
-        liable = 0 if (CONSTANTS.RENTOR_NAME in [r.name for r in member.roles if r.name != "@everyone"]) else 1
+        user_roles = [r.name for r in member.roles if r.name != "@everyone"]
+        for admin_role in CONSTANTS.ADMIN_ROLES:
+            if admin_role in user_roles:
+                liable = CONSTANTS.ADMIN_ROLES[admin_role]
+                break
     try:
         user = await client.fetch_user(user_id)
     except Exception:

@@ -19,3 +19,9 @@ POINTS_GROUP_MAP = 2
 RENTOR_NAME = 'Rentor'
 GROUP_MAP_NAMES = ['группики', 'групики']
 REACT_TO_MESSAGES = False
+ADMIN_ROLES = {
+    "Rentor": 0,
+    "Officer": 2,
+    "Mentor": 3,
+    "Recruiter": 4
+}
