@@ -56,6 +56,15 @@ BASE_HTML = """
 
 INDEX_HTML = """
 <h2>Список пользователей</h2>
+<h3>Легенда по цветам:</h3>
+<ul style="list-style-type:none; padding:0;">
+  <li><span style="color:#00bfff; font-weight:bold;">Голубой</span> — не требуется набирать очки (liable = 0)</li>
+  <li><span style="color:#888888; font-weight:bold;">Серый</span> — ливнул</li>
+  <li><span style="color:#00ff88; font-weight:bold;">Зелёный</span> — молодец</li>
+  <li><span style="color:#ffff00; font-weight:bold;">Жёлтый</span> — почти молодец (набрал ≥50% от цели)</li>
+  <li><span style="color:#e0e0e0; font-weight:bold;">Белый</span> — всё остальное</li>
+  <td><a href='https://discordapp.com/channels/1355240968621658242/1369330940551106665' target='_blank'>📗┆правила-посещения</a></td>
+</ul>
 <table>
   <tr>
     <th>Пользователь</th>
@@ -72,6 +81,8 @@ INDEX_HTML = """
         {% set color = '#888888' %} {# серый #}
       {% elif row['total_points'] >= row['need_to_get'] %}
         {% set color = '#00ff88' %} {# зелёный #}
+      {% elif row['total_points'] >= row['need_to_get'] * 0.5 %}
+        {% set color = '#ffff00' %} {# жёлтый #}
       {% endif %}
       <tr style="color: {{ color if color else '#e0e0e0' }}">
         <td>{{ row['display_name'] or '—' }}</td>
