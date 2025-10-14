@@ -99,9 +99,8 @@ INDEX_HTML = """
         {% set color = '#ffa500' %} {# оранжевый #}
       {% elif row['liable'] == 4 %}
         {% set color = '#be03fc' %} {# фиолетовый #}
-      {% if row['liable'] == 2 %}
+      {% elif row['liable'] == 2 %}
         {% set color = '#fc0303' %} {# красный #}
-      {% endif %}
       {% endif %}
       <tr style="color: {{ color if color else '#e0e0e0' }}">
         <td>{{ row['display_name'] or '—' }}</td>
