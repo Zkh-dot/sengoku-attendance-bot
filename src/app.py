@@ -1,6 +1,8 @@
 import os
 import sqlite3
 from flask import Flask, g, render_template_string, url_for, abort
+import dotenv
+dotenv.load_dotenv()
 
 app = Flask(__name__)
 DB_PATH = os.environ.get("DB_PATH", "./sengoku_bot.db")
