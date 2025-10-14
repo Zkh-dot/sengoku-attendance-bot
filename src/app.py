@@ -115,7 +115,7 @@ def index():
     db = get_db()
     q = db.execute("""
         SELECT u.uid,
-               COALESCE(NULLIF(u.global_username, ''), u.server_username) AS display_name,
+               COALESCE(NULLIF(u.server_username, ''), u.global_username) AS display_name,
                u.liable,
                COUNT(DISTINCT CASE WHEN e.disband != 1 THEN e.message_id END) AS event_count,
                COALESCE(SUM(CASE WHEN e.disband != 1 THEN e.points ELSE 0 END), 0) AS total_points
