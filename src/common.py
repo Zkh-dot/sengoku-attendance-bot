@@ -33,7 +33,6 @@ async def get_user_by_id(client: discord.Client, guild_id: int, user_id: int, db
         last_day = next_month - datetime.timedelta(days=next_month.day)
 
         delta = last_day - member.joined_at
-        print(f"member {member.display_name} joined_at: {member.joined_at.isoformat()}, delta: {delta}")
         need_to_get = min(45, int(delta.days * 1.5))
         is_member = 1
         liable = 0 if (CONSTANTS.RENTOR_NAME in [r.name for r in member.roles if r.name != "@everyone"]) else 1
