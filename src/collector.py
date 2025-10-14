@@ -30,9 +30,6 @@ async def analyze_channel(channel_id):
         now = datetime.now(timezone.utc)
         after = now - timedelta(hours=CONSTANTS.FROM_HOURS)
         before = now - timedelta(hours=CONSTANTS.TO_HOURS)
-
-        after = datetime(2025, 10, 13, 17, 1, tzinfo=timezone.utc)
-        before = datetime(2025, 10, 13, 18, 1, tzinfo=timezone.utc)
         n = 0
         async for m in channel.history(limit=None, after=after, before=before, oldest_first=True):
             event = datatypes.Event(
