@@ -78,7 +78,13 @@ INDEX_HTML = """
     <th>Количество активных ивентов</th>
     <th>Сумма очков</th>
     <th>Цель (нужно очков)</th>
-  </tr>
+    <tr style="color: #310036; font-weight: bold; background-color: #999;">
+      <td>D9dka</td>
+      <td>—</td>
+      <td>∞</td>
+      <td>∞</td>
+      <td>0</td>
+    </tr>
     {% for row in rows %}
       {% set color = '' %}
       {% if row['liable'] == 0 %}
@@ -148,18 +154,19 @@ def close_db(exception):
 def index():
     db = get_db()
     q = db.execute("""
-        SELECT u.uid,
-               COALESCE(NULLIF(u.server_username, ''), u.global_username) AS display_name,
-               u.liable,
-               COUNT(DISTINCT CASE WHEN e.disband != 1 THEN e.message_id END) AS event_count,
-               COALESCE(SUM(CASE WHEN e.disband != 1 THEN e.points ELSE 0 END), 0) AS total_points,
-               u.need_to_get,
-               u.is_member
-        FROM USERS u
-        LEFT JOIN EVENTS_TO_USERS etu ON etu.ds_uid = u.uid
-        LEFT JOIN EVENTS e ON e.message_id = etu.message_id
-        GROUP BY u.uid
-        ORDER BY total_points DESC, event_count DESC, display_name COLLATE NOCASE ASC
+      SELECT u.uid,
+           COALESCE(NULLIF(u.server_username, ''), u.global_username) AS display_name,
+           u.liable,
+           COUNT(DISTINCT CASE WHEN e.disband != 1 THEN e.message_id END) AS event_count,
+           COALESCE(SUM(CASE WHEN e.disband != 1 THEN e.points ELSE 0 END), 0) AS total_points,
+           u.need_to_get,
+           u.is_member
+      FROM USERS u
+      LEFT JOIN EVENTS_TO_USERS etu ON etu.ds_uid = u.uid
+      LEFT JOIN EVENTS e ON e.message_id = etu.message_id
+      WHERE COALESCE(NULLIF(u.server_username, ''), u.global_username) != 'D9dka'
+      GROUP BY u.uid
+      ORDER BY total_points DESC, event_count DESC, display_name COLLATE NOCASE ASC
     """)
     rows = q.fetchall()
     html = render_template_string(INDEX_HTML, rows=rows)
