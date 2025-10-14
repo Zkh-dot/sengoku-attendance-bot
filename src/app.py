@@ -147,5 +147,25 @@ def user_detail(uid):
     html = render_template_string(USER_HTML, events=events)
     return render_template_string(BASE_HTML, title=f"{user['display_name'] or 'без имени'}", subtitle=f"Сходил на {len(events)} ивентов (✓ — активные, ✗ — отменённые)", content=html)
 
+# Respect reverse-proxy headers and prefix
+from werkzeug.middleware.proxy_fix import ProxyFix
+
+class PrefixMiddleware:
+    def __init__(self, app):
+        self.app = app
+    def __call__(self, environ, start_response):
+        prefix = environ.get('HTTP_X_SCRIPT_NAME') or environ.get('HTTP_X_FORWARDED_PREFIX')
+        if prefix:
+            prefix = prefix.rstrip('/')
+            environ['SCRIPT_NAME'] = prefix
+            path = environ.get('PATH_INFO', '')
+            if path.startswith(prefix):
+                environ['PATH_INFO'] = path[len(prefix):] or '/'
+        return self.app(environ, start_response)
+
+# apply middlewares
+app.wsgi_app = PrefixMiddleware(app.wsgi_app)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1)
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
