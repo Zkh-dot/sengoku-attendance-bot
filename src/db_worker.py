@@ -14,7 +14,9 @@ CREATE TABLE IF NOT EXISTS USERS (
     global_username TEXT,
     liable INTEGER,
     visible INTEGER,
-    timeout DATETIME
+    timeout DATETIME,
+    need_to_get INTEGER DEFAULT 45,
+    is_member INTEGER DEFAULT 1
 );
         ''')
         self.cursor.execute('''
@@ -68,9 +70,27 @@ CREATE TABLE IF NOT EXISTS BRANCH_MESSAGES (
 
     def add_user(self, user: datatypes.User):
         self.execute('''
-INSERT OR REPLACE INTO USERS (uid, server_username, global_username, liable, visible, timeout)
-VALUES (?, ?, ?, ?, ?, ?)
-''', (user.uuid, user.server_username, user.global_username, user.liable, user.visible, user.timeout.isoformat() if user.timeout else None))
+INSERT OR REPLACE INTO USERS (
+                     uid,
+                     server_username,
+                     global_username,
+                     liable,
+                     visible,
+                     timeout,
+                     need_to_get,
+                     is_member
+                    )
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+''', (
+        user.uuid,
+        user.server_username,
+        user.global_username,
+        user.liable,
+        user.visible,
+        user.timeout.isoformat() if user.timeout else None,
+        user.need_to_get,
+        user.is_member
+    ))
         
     def add_branch_message(self, branch_message: datatypes.BranchMessage, parent_message_id: int):
         self.execute('''

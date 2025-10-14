@@ -7,12 +7,16 @@ class User:
     liable: int
     visible: int
     timeout: datetime.datetime
-    def __init__(self, uuid: int, server_username: str = None, global_username: str = None, liable: int = 1, visible: int = 1, timeout: str = None):
+    need_to_get: int
+    is_member: int = 1
+    def __init__(self, uuid: int, server_username: str = None, global_username: str = None, liable: int = 1, visible: int = 1, timeout: str = None, need_to_get: int = 45, is_member: int = 1):
         self.uuid = uuid
         self.server_username = server_username
         self.global_username = global_username
         self.liable = liable
         self.visible = visible
+        self.need_to_get = need_to_get
+        self.is_member = is_member
         if timeout:
             self.timeout = datetime.datetime.fromisoformat(timeout)
         else:

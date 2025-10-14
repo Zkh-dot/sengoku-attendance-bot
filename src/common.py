@@ -14,7 +14,7 @@ async def get_user_by_id(client: discord.Client, guild_id: int, user_id: int, db
             guild = await client.fetch_guild(guild_id)  # редко нужно
         except Exception:
             guild = None
-
+    need_to_get = 45
     member = None
     if guild:
         member = guild.get_member(user_id)
@@ -25,18 +25,27 @@ async def get_user_by_id(client: discord.Client, guild_id: int, user_id: int, db
                 member = None
             except discord.Forbidden:
                 member = None
+        else:
+            if member.joined_at:
+                delta = discord.utils.utcnow() - member.joined_at
+                need_to_get = min(45, int(delta.days * 1.5))
     liable = 1
+    is_member = 0
     if member:
+        is_member = 1
         liable = 0 if (CONSTANTS.RENTOR_NAME in [r.name for r in member.roles if r.name != "@everyone"]) else 1
     try:
         user = await client.fetch_user(user_id)
     except Exception:
         user = None
+    
     user = datatypes.User(
         uuid=user_id,
         server_username=member.display_name if member else None,
         global_username=user.name if user else None,
         liable=liable,
+        is_member=is_member,
+        need_to_get=need_to_get
     )
     return user
 

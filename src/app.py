@@ -62,15 +62,25 @@ INDEX_HTML = """
     <th>UID (ссылка)</th>
     <th>Количество активных ивентов</th>
     <th>Сумма очков</th>
+    <th>Цель (нужно очков)</th>
   </tr>
-  {% for row in rows %}
-    <tr {% if row['total_points'] > 45 or row['liable'] == 0 %}class='highlight'{% endif %}>
-      <td>{{ row['display_name'] or '—' }}</td>
-      <td><a href='{{ url_for('user_detail', uid=row['uid']) }}'>{{ row['uid'] }}</a></td>
-      <td>{{ row['event_count'] }}</td>
-      <td>{{ row['total_points'] or 0 }}</td>
-    </tr>
-  {% endfor %}
+    {% for row in rows %}
+      {% set color = '' %}
+      {% if row['liable'] == 0 %}
+        {% set color = '#00bfff' %} {# голубой #}
+      {% elif row['is_member'] == 0 %}
+        {% set color = '#888888' %} {# серый #}
+      {% elif row['total_points'] >= row['need_to_get'] %}
+        {% set color = '#00ff88' %} {# зелёный #}
+      {% endif %}
+      <tr style="color: {{ color if color else '#e0e0e0' }}">
+        <td>{{ row['display_name'] or '—' }}</td>
+        <td><a href='{{ url_for('user_detail', uid=row['uid']) }}'>{{ row['uid'] }}</a></td>
+        <td>{{ row['event_count'] }}</td>
+        <td>{{ row['total_points'] or 0 }}</td>
+        <td>{{ row['need_to_get'] }}</td>
+      </tr>
+    {% endfor %}
 </table>
 """
 
@@ -118,7 +128,9 @@ def index():
                COALESCE(NULLIF(u.server_username, ''), u.global_username) AS display_name,
                u.liable,
                COUNT(DISTINCT CASE WHEN e.disband != 1 THEN e.message_id END) AS event_count,
-               COALESCE(SUM(CASE WHEN e.disband != 1 THEN e.points ELSE 0 END), 0) AS total_points
+               COALESCE(SUM(CASE WHEN e.disband != 1 THEN e.points ELSE 0 END), 0) AS total_points,
+               u.need_to_get,
+               u.is_member
         FROM USERS u
         LEFT JOIN EVENTS_TO_USERS etu ON etu.ds_uid = u.uid
         LEFT JOIN EVENTS e ON e.message_id = etu.message_id
