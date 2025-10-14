@@ -11,7 +11,6 @@ import db_worker as dbw
 dotenv.load_dotenv()
 
 TOKEN = os.getenv("DISCORD_TOKEN")
-CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID", "0"))
 
 intents = discord.Intents.none()
 intents.guilds = True
@@ -60,10 +59,11 @@ async def analyze_channel(channel_id):
                 event.disband = 1
             db_worker.add_event(event)
             try:
-                if event.disband == 1:
-                    await m.add_reaction(CONSTANTS.REACTION_NO)
-                else:
-                    await m.add_reaction(CONSTANTS.REACTION_YES)
+                if CONSTANTS.REACT_TO_MESSAGES:
+                    if event.disband == 1:
+                        await m.add_reaction(CONSTANTS.REACTION_NO)
+                    else:
+                        await m.add_reaction(CONSTANTS.REACTION_YES)
             except Exception:
                 pass
         print(f"dumped {n} messages from {after.isoformat()} to {before.isoformat()}")
@@ -77,6 +77,7 @@ async def on_ready():
     try:
         for ch in CONSTANTS.CHANNELS:
             await analyze_channel(ch)
+            print(f"analyzed channel {ch}")
     except Exception as e:
         import traceback; traceback.print_exc()
     finally:
