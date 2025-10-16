@@ -73,8 +73,8 @@ def check_disband(message: str) -> bool:
             return True
     return False
 
-def points_by_event(event: datatypes.Event) -> int:
+def points_by_event(event: datatypes.Event, points: int) -> int:
     for name in CONSTANTS.GROUP_MAP_NAMES:
         if name in event.message_text.lower():
             return CONSTANTS.POINTS_GROUP_MAP
-    return CONSTANTS.CHANNELS.get(event.channel_id, 0)
+    return CONSTANTS.CHANNELS.get(event.channel_id, points)

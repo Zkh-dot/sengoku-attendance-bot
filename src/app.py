@@ -50,6 +50,23 @@ BASE_HTML = """
   <h1>{{ title }}</h1>
   <p>{{ subtitle }}</p>
   {{ content|safe }}
+  <script>
+    (function() {
+      function scheduleReload() {
+        const now = new Date()
+        const minutes = now.getMinutes()
+        const seconds = now.getSeconds()
+        let delay
+        if (minutes < 10) {
+          delay = ((10 - minutes) * 60 - seconds) * 1000
+        } else {
+          delay = ((70 - minutes) * 60 - seconds) * 1000
+        }
+        setTimeout(() => location.reload(), delay)
+      }
+      scheduleReload()
+    })();
+</script>
 </body>
 </html>
 """
@@ -179,13 +196,22 @@ def user_detail(uid):
     if not user:
         abort(404)
     eq = db.execute("""
-        SELECT e.message_id, e.guild_id, e.channel_id, e.channel_name, e.message_text, e.read_time, e.disband, e.points
+        SELECT e.message_id, e.guild_id, e.channel_id, e.channel_name, e.message_text, e.read_time, e.disband, e.points, e.hidden
         FROM EVENTS_TO_USERS etu
         JOIN EVENTS e ON e.message_id = etu.message_id
         WHERE etu.ds_uid = ?
         ORDER BY e.message_id DESC
     """, (uid,))
     events = eq.fetchall()
+    for i in range(len(events)):
+        if events[i]['hidden']:
+            events[i] = dict(events[i])
+            events[i]['channel_name'] = f"None"
+            events[i]['message_text'] = "None"
+            events[i]['channel_id'] = 0
+            events[i]['message_id'] = 0
+            events[i]['guild_id'] = 0
+
     html = render_template_string(USER_HTML, events=events)
     return render_template_string(BASE_HTML, title=f"{user['display_name'] or 'без имени'}", subtitle=f"Сходил на {len(events)} контентов (✓ — проведенные, ✗ — дизбанднутые)", content=html)
 

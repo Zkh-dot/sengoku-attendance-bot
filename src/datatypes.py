@@ -45,6 +45,7 @@ class Event:
     points: int = 0
     mentioned_users: list[User]
     branch_messages: list[BranchMessage]
+    hidden: bool = False
     guild_id: int | None = None
     def __init__(self, message_id: int, message_text: str,
                  disband: int = 0, read_time: str = None,
@@ -52,7 +53,8 @@ class Event:
                  author: User = None,
                  channel_id: int | None = None, channel_name: str | None = None,
                  guild_id: int | None = None,
-                 points: int = 0):
+                 points: int = 0,
+                 hidden: bool = False):
         self.message_id = message_id
         self.message_text = message_text
         self.disband = disband
@@ -64,3 +66,4 @@ class Event:
         self.channel_name = channel_name
         self.guild_id = guild_id
         self.points = points
+        self.hidden = hidden

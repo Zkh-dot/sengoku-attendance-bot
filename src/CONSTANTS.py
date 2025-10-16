@@ -1,5 +1,5 @@
 DISBAND_MESSAGES = {'дизбанд', 'диз', 'disband', 'dis'}
-FROM_HOURS = 25
+FROM_HOURS = 50
 TO_HOURS = 24
 NAME_LINE = r".*?<@&?(.*?)>.*?"
 REACTION_YES = '✅'
@@ -16,7 +16,12 @@ CHANNELS = {
     1397112122021773334: 5, # zvz 16 utc
     1397112176522559582: 5, # zvz 18 utc
     1419352914258038805: 5, # zvz fast mass
-
+}
+HIDDEN = {
+    1345611337559965737: 3, # gru-morning
+    1345611509127970906: 3, # gru-day
+    1345611851026792500: 3, # gru-evening
+    1345611986033180683: 3, # gru-night
 }
 POINTS_GROUP_MAP = 2
 RENTOR_NAME = 'Rentor'

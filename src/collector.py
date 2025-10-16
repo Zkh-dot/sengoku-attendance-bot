@@ -20,7 +20,7 @@ client = discord.Client(intents=intents)
 db_worker = dbw.DBWorker()
 lgr = logger.get_logger("collector")
 
-async def analyze_channel(channel_id):
+async def analyze_channel(channel_id: int, points: int, hide=False):
     try:
         if not channel_id:
             raise RuntimeError("set DISCORD_CHANNEL_ID")
@@ -33,6 +33,7 @@ async def analyze_channel(channel_id):
         before = now - timedelta(hours=CONSTANTS.TO_HOURS)
         # after = datetime(2025, 10, 1, 0, 1, tzinfo=timezone.utc)
         # before = datetime(2025, 10, 14, 0, 1, tzinfo=timezone.utc)
+        lgr.info(f"analyzing channel {channel_id} from {after} to {before}")
         n = 0
         async for m in channel.history(limit=None, after=after, before=before, oldest_first=True):
             event = datatypes.Event(
@@ -41,7 +42,8 @@ async def analyze_channel(channel_id):
                 message_text=m.content,
                 read_time=datetime.now(timezone.utc),
                 mentioned_users=await common.users_by_message(m, client, db_worker),
-                guild_id=m.guild.id if m.guild else None
+                guild_id=m.guild.id if m.guild else None,
+                hidden=hide
             )
             event.disband = int(common.check_disband(event.message_text))
             if m.thread:
@@ -56,7 +58,7 @@ async def analyze_channel(channel_id):
                         event.disband = 1
             event.channel_id = m.channel.id
             event.channel_name = m.channel.name
-            event.points = common.points_by_event(event)
+            event.points = common.points_by_event(event, points)
             n += 1
             if len(event.mentioned_users) < CONSTANTS.MIN_USERS:
                 event.disband = 1
@@ -79,8 +81,11 @@ async def on_ready():
     lgr.info(f"logged in as {client.user}")
     try:
         for ch in CONSTANTS.CHANNELS:
-            await analyze_channel(ch)
+            await analyze_channel(ch, CONSTANTS.CHANNELS[ch], hide=False)
             lgr.info(f"analyzed channel {ch}")
+        for ch in CONSTANTS.HIDDEN:
+            await analyze_channel(ch, CONSTANTS.HIDDEN[ch], hide=True)
+            lgr.info(f"analyzed hidden channel {ch}")
     except Exception as e:
         import traceback; traceback.print_exc()
     finally:

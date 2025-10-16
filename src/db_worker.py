@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS EVENTS (
     channel_name TEXT,
     guild_id INTEGER,
     points INTEGER DEFAULT 0,
+    hidden INTEGER DEFAULT 0,
     FOREIGN KEY (author_user_id) REFERENCES USERS(uid)
 );
         ''')
@@ -107,8 +108,8 @@ VALUES (?, ?)
     def add_event(self, event: datatypes.Event):
         self.add_user(event.author)
         self.execute('''
-INSERT OR REPLACE INTO EVENTS (message_id, author_user_id, message_text, disband, read_time, channel_id, channel_name, guild_id, points)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+INSERT OR REPLACE INTO EVENTS (message_id, author_user_id, message_text, disband, read_time, channel_id, channel_name, guild_id, points, hidden)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ''', (
         event.message_id,
         event.author.uuid,
@@ -118,7 +119,8 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         event.channel_id,
         event.channel_name,
         event.guild_id,
-        event.points
+        event.points,
+        1 if event.hidden else 0
         ))
         for mu in event.mentioned_users:
             self.add_user(mu)
