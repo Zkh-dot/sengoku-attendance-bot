@@ -55,9 +55,9 @@ BASE_HTML = """
 """
 
 INDEX_HTML = """
-<h2>Подсчет ведется с отставанием в 24 часа, т.е. сейчас посещения за сегодня не отображаются.</h2>
+<h2>Подсчет ведется с отставанием в 24 часа, т.е. сейчас посещения за последние 24 часа не отображаются.</h2>
 <h2>Список пользователей</h2>
-<h3>Легенда по цветам:</h3>
+<h3>Пояснения по цветам:</h3>
 <ul style="list-style-type:none; padding:0;">
   <li><span style="color:#00bfff; font-weight:bold;">Голубой</span> — не требуется набирать очки</li>
   <li><span style="color:#888888; font-weight:bold;">Серый</span> — ливнул</li>
@@ -75,9 +75,9 @@ INDEX_HTML = """
   <tr>
     <th>Пользователь</th>
     <th>UID (ссылка)</th>
-    <th>Количество активных ивентов</th>
+    <th>Количество посещенного контента</th>
     <th>Сумма очков</th>
-    <th>Цель (нужно очков)</th>
+    <th>Цель (нужно набрать очков в этом месяце)</th>
     <tr style="color: #310036; font-weight: bold; background-color: #999;">
       <td>D9dka</td>
       <td>—</td>
@@ -114,13 +114,13 @@ INDEX_HTML = """
 """
 
 USER_HTML = """
-<h2>Ивенты пользователя</h2>
+<h2>Контенты мембера</h2>
 <table>
   <tr>
     <th>Сообщение</th>
     <th>Канал</th>
     <th>Прочитано</th>
-    <th>Отмена (✗ / ✓)</th>
+    <th>Отмена (✗ - диз / ✓ - провели)</th>
     <th>Очки</th>
     <th>Ссылка</th>
   </tr>
@@ -169,7 +169,7 @@ def index():
     """)
     rows = q.fetchall()
     html = render_template_string(INDEX_HTML, rows=rows)
-    return render_template_string(BASE_HTML, title='Пользователи × ивенты', subtitle=f'Всего пользователей: {len(rows)}', content=html)
+    return render_template_string(BASE_HTML, title='Пользователи × контент', subtitle=f'Всего пользователей: {len(rows)}', content=html)
 
 @app.route('/user/<int:uid>')
 def user_detail(uid):
@@ -187,7 +187,7 @@ def user_detail(uid):
     """, (uid,))
     events = eq.fetchall()
     html = render_template_string(USER_HTML, events=events)
-    return render_template_string(BASE_HTML, title=f"{user['display_name'] or 'без имени'}", subtitle=f"Сходил на {len(events)} ивентов (✓ — активные, ✗ — отменённые)", content=html)
+    return render_template_string(BASE_HTML, title=f"{user['display_name'] or 'без имени'}", subtitle=f"Сходил на {len(events)} контентов (✓ — проведенные, ✗ — дизбанднутые)", content=html)
 
 # Respect reverse-proxy headers and prefix
 from werkzeug.middleware.proxy_fix import ProxyFix
