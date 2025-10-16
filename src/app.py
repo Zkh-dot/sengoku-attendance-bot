@@ -207,7 +207,7 @@ def user_detail(uid):
         if events[i]['hidden']:
             events[i] = dict(events[i])
             events[i]['channel_name'] = f"None"
-            events[i]['message_text'] = "None"
+            events[i]['message_text'] = "А тебя это ебать не должно"
             events[i]['channel_id'] = 0
             events[i]['message_id'] = 0
             events[i]['guild_id'] = 0

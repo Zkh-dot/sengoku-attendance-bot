@@ -32,7 +32,7 @@ async def analyze_channel(channel_id: int, points: int, hide=False):
         after = now - timedelta(hours=CONSTANTS.FROM_HOURS)
         before = now - timedelta(hours=CONSTANTS.TO_HOURS)
         # after = datetime(2025, 10, 1, 0, 1, tzinfo=timezone.utc)
-        # before = datetime(2025, 10, 14, 0, 1, tzinfo=timezone.utc)
+        # before = datetime(2025, 10, 16, 0, 1, tzinfo=timezone.utc)
         lgr.info(f"analyzing channel {channel_id} from {after} to {before}")
         n = 0
         async for m in channel.history(limit=None, after=after, before=before, oldest_first=True):
