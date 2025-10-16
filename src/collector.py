@@ -7,7 +7,7 @@ import datatypes
 import common
 import CONSTANTS
 import db_worker as dbw
-
+import logger
 dotenv.load_dotenv()
 
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -18,6 +18,7 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 
 db_worker = dbw.DBWorker()
+lgr = logger.get_logger("collector")
 
 async def analyze_channel(channel_id):
     try:
@@ -68,20 +69,18 @@ async def analyze_channel(channel_id):
                         await m.add_reaction(CONSTANTS.REACTION_YES)
             except Exception:
                 pass
-        print(f"dumped {n} messages from {after.isoformat()} to {before.isoformat()}")
-        with open(str(datetime.now().timestamp()) + '.log', 'w', encoding='utf-8') as f:
-            f.write(f"dumped {n} messages from {after.isoformat()} to {before.isoformat()}\n")
+        lgr.info(f"analyzed {n} messages in channel {channel_id}")
     except Exception as e:
         import traceback; traceback.print_exc()
 
 
 @client.event
 async def on_ready():
-    print(f"ready: {client.user}")
+    lgr.info(f"logged in as {client.user}")
     try:
         for ch in CONSTANTS.CHANNELS:
             await analyze_channel(ch)
-            print(f"analyzed channel {ch}")
+            lgr.info(f"analyzed channel {ch}")
     except Exception as e:
         import traceback; traceback.print_exc()
     finally:
