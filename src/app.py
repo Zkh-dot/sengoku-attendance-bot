@@ -73,7 +73,11 @@ BASE_HTML = """
 
 INDEX_HTML = """
 <h2>Подсчет ведется с отставанием в 24 часа, т.е. сейчас посещения за последние 24 часа не отображаются.</h2>
-<h2>Список пользователей</h2>
+<br>Эта таблица в течение месяца - просто ориентир, чтобы вы примерно представляли, сколько вам нужно сходить на контент. В конце месяца будет точный подсчет очков и посещений, и если вы не наберете нужное количество очков, то будет кик.
+</br>
+<br>
+Если вам кажется, что какой-то на какой-то контент вы сходили, а он не учтен, напишите <span style="color:#fc0303; font-weight:bold;">@sscv</span> в личку
+</br>
 <h3>Пояснения по цветам:</h3>
 <ul style="list-style-type:none; padding:0;">
   <li><span style="color:#00bfff; font-weight:bold;">Голубой</span> — не требуется набирать очки</li>
@@ -90,8 +94,8 @@ INDEX_HTML = """
 </ul>
 <table>
   <tr>
-    <th>Пользователь</th>
-    <th>UID (ссылка)</th>
+    <th>Ник</th>
+    <th>нажми на меня</th>
     <th>Количество посещенного контента</th>
     <th>Сумма очков</th>
     <th>Цель (нужно набрать очков в этом месяце)</th>
@@ -136,7 +140,7 @@ USER_HTML = """
   <tr>
     <th>Сообщение</th>
     <th>Канал</th>
-    <th>Прочитано</th>
+    <th>Время</th>
     <th>Отмена (✗ - диз / ✓ - провели)</th>
     <th>Очки</th>
     <th>Ссылка</th>
@@ -154,6 +158,27 @@ USER_HTML = """
 </table>
 """
 
+TECHNICAL_TIMEOUT_HTML = """
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Пока не работает</title>
+  <style>
+    body {
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 { color: #ffffff; }
+    p { color: #bbbbbb; }
+  </style>
+</head>
+"""
+
 def get_db():
     if 'db' not in g:
         g.db = sqlite3.connect(DB_PATH)
@@ -168,6 +193,8 @@ def close_db(exception):
 
 @app.route('/')
 def index():
+    if os.getenv("TECHNICAL_TIMEOUT", "0") == "1":
+        return render_template_string(TECHNICAL_TIMEOUT_HTML + "<body><h1>Ведутся технические работы</h1><p>Извините за неудобства, скоро всё починим.</p></body></html>")
     db = get_db()
     q = db.execute("""
       SELECT u.uid,
@@ -186,7 +213,7 @@ def index():
     """)
     rows = q.fetchall()
     html = render_template_string(INDEX_HTML, rows=rows)
-    return render_template_string(BASE_HTML, title='Пользователи × контент', subtitle=f'Всего пользователей: {len(rows)}', content=html)
+    return render_template_string(BASE_HTML, title='мемберы × контент', subtitle=f'Всего мемберов: {len(rows)}', content=html)
 
 @app.route('/user/<int:uid>')
 def user_detail(uid):

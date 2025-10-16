@@ -40,7 +40,7 @@ async def analyze_channel(channel_id: int, points: int, hide=False):
                 message_id=m.id,
                 author=await common.get_user_by_id(client, m.guild.id, m.author.id, db_worker),
                 message_text=m.content,
-                read_time=datetime.now(timezone.utc),
+                read_time=m.created_at,
                 mentioned_users=await common.users_by_message(m, client, db_worker),
                 guild_id=m.guild.id if m.guild else None,
                 hidden=hide
@@ -51,7 +51,7 @@ async def analyze_channel(channel_id: int, points: int, hide=False):
                     bm = datatypes.BranchMessage(
                         message_id=mm.id,
                         message_text=mm.content,
-                        read_time=datetime.now(timezone.utc)
+                        read_time=mm.created_at
                     )
                     event.branch_messages.append(bm)
                     if common.check_disband(bm.message_text) and mm.author.id == m.author.id:
