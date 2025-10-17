@@ -5,7 +5,7 @@ import dotenv
 dotenv.load_dotenv()
 
 app = Flask(__name__)
-DB_PATH = os.environ.get("DB_PATH", "./sengoku_bot.db")
+DB_PATH = os.environ.get("DB_PATH", os.path.join(os.path.abspath(__file__), 'sengoku_bot.db'))
 
 BASE_HTML = """
 <!doctype html>

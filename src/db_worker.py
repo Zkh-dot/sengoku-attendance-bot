@@ -1,9 +1,9 @@
 import sqlite3
 import datetime
 import datatypes
-
+import os
 class DBWorker:
-    def __init__(self, db_path: str = 'sengoku_bot.db'):
+    def __init__(self, db_path: str = os.path.join(os.path.abspath(__file__), 'sengoku_bot.db')):
         self.conn = sqlite3.connect(db_path)
         self.conn.execute("PRAGMA foreign_keys = ON")
         self.cursor = self.conn.cursor()
