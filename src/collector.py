@@ -92,6 +92,7 @@ async def on_ready():
         import traceback; traceback.print_exc()
     finally:
         await client.close()
+        lgr.info("All done, client closed")
 
 if not TOKEN:
     raise SystemExit("set DISCORD_TOKEN")
