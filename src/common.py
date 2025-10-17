@@ -78,3 +78,17 @@ def points_by_event(event: datatypes.Event, points: int) -> int:
         if name in event.message_text.lower():
             return CONSTANTS.POINTS_GROUP_MAP
     return CONSTANTS.CHANNELS.get(event.channel_id, points)
+
+def check_for_treasury(message: discord.Message) -> bool:
+    text = message.content.lower()
+    for word in text:
+        if word in CONSTANTS.TREASURY_MESSAGES:
+            return True
+    if message.thread:
+        for mm in message.thread.history(limit=None, oldest_first=True):
+            if mm.content:
+                text = mm.content.lower()
+                for word in text:
+                    if word in CONSTANTS.TREASURY_MESSAGES:
+                        return True
+    return False

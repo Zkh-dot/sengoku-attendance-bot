@@ -59,6 +59,8 @@ async def analyze_channel(channel_id: int, points: int, hide=False):
             event.channel_id = m.channel.id
             event.channel_name = m.channel.name
             event.points = common.points_by_event(event, points)
+            if event in CONSTANTS.HIDDEN and common.check_for_treasury(m):
+                event.points = CONSTANTS.TREASURY_POINTS
             n += 1
             if len(event.mentioned_users) < CONSTANTS.MIN_USERS:
                 event.disband = 1
