@@ -71,11 +71,11 @@ async def analyze_channel(channel_id: int, points: int, hide=False):
                         await m.add_reaction(CONSTANTS.REACTION_NO)
                     else:
                         await m.add_reaction(CONSTANTS.REACTION_YES)
-            except Exception:
-                pass
+            except Exception as e:
+                lgr.error(f"Failed to add reaction to message {m.id}: {e}")
         lgr.info(f"analyzed {n} messages in channel {channel_id}")
     except Exception as e:
-        import traceback; traceback.print_exc()
+        lgr.error(f"Error analyzing channel {channel_id}: {e}")
 
 
 @client.event
