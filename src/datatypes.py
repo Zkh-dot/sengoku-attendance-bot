@@ -9,7 +9,17 @@ class User:
     timeout: datetime.datetime
     need_to_get: int
     is_member: int = 1
-    def __init__(self, uuid: int, server_username: str = None, global_username: str = None, liable: int = 1, visible: int = 1, timeout: str = None, need_to_get: int = 45, is_member: int = 1):
+    join_date: datetime.datetime
+    def __init__(self,
+                uuid: int,
+                server_username: str = None,
+                global_username: str = None,
+                liable: int = 1,
+                visible: int = 1,
+                timeout: str = None,
+                need_to_get: int = 45,
+                is_member: int = 1,
+                join_date: datetime.datetime = None):
         self.uuid = uuid
         self.server_username = server_username
         self.global_username = global_username
@@ -17,6 +27,7 @@ class User:
         self.visible = visible
         self.need_to_get = need_to_get
         self.is_member = is_member
+        self.join_date = join_date
         if timeout:
             self.timeout = datetime.datetime.fromisoformat(timeout)
         else:
@@ -26,7 +37,10 @@ class BranchMessage:
     message_id: int
     message_text: str
     read_time: datetime.datetime
-    def __init__(self, message_id: int, message_text: str, read_time: datetime.datetime = None):
+    def __init__(self,
+                message_id: int,
+                message_text: str,
+                read_time: datetime.datetime = None):
         self.message_id = message_id
         self.message_text = message_text
         if read_time:
@@ -47,11 +61,15 @@ class Event:
     branch_messages: list[BranchMessage]
     hidden: bool = False
     guild_id: int | None = None
-    def __init__(self, message_id: int, message_text: str,
-                 disband: int = 0, read_time: str = None,
+    def __init__(self,
+                message_id: int,
+                message_text: str,
+                 disband: int = 0,
+                read_time: str = None,
                  mentioned_users: list['User'] = None,
                  author: User = None,
-                 channel_id: int | None = None, channel_name: str | None = None,
+                 channel_id: int | None = None,
+                channel_name: str | None = None,
                  guild_id: int | None = None,
                  points: int = 0,
                  hidden: bool = False):

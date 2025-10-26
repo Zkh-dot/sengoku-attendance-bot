@@ -4,6 +4,23 @@ import datatypes
 import re
 import datetime
 import db_worker as dbw
+from datetime import date, timedelta
+
+
+def days_until_month_end(from_date: date) -> int:
+    if isinstance(from_date, datetime.datetime):
+        from_date = from_date.date()
+
+    today = date.today()
+    next_month = (today.replace(day=28) + timedelta(days=4))
+    end_of_current_month = next_month - timedelta(days=next_month.day)
+
+    return (end_of_current_month - from_date).days
+
+def calculate_need_to_get(join_date: datetime.datetime) -> int:
+    need_to_get = min(45, int(days_until_month_end(join_date) * 1.5))
+    return need_to_get
+
 
 async def get_user_by_id(client: discord.Client, guild_id: int, user_id: int, db_worker: dbw.DBWorker = None) -> datatypes.User:
     user = db_worker.get_user(user_id) if db_worker else None
@@ -29,11 +46,7 @@ async def get_user_by_id(client: discord.Client, guild_id: int, user_id: int, db
     liable = 1
     is_member = 0
     if member:
-        next_month = (discord.utils.utcnow().replace(day=28) + datetime.timedelta(days=4)).replace(hour=0, minute=0, second=0, microsecond=0)
-        last_day = next_month - datetime.timedelta(days=next_month.day)
-
-        delta = last_day - member.joined_at
-        need_to_get = min(45, int(delta.days * 1.5))
+        need_to_get = calculate_need_to_get(member.joined_at)
         is_member = 1
         user_roles = [r.name for r in member.roles if r.name != "@everyone"]
         for admin_role in CONSTANTS.ADMIN_ROLES:
@@ -51,7 +64,8 @@ async def get_user_by_id(client: discord.Client, guild_id: int, user_id: int, db
         global_username=user.name if user else None,
         liable=liable,
         is_member=is_member,
-        need_to_get=need_to_get
+        need_to_get=need_to_get if member else 0,
+        join_date=member.joined_at if member else None
     )
     return user
 
@@ -92,3 +106,6 @@ def check_for_treasury(message: discord.Message) -> bool:
                     if word in CONSTANTS.TREASURY_MESSAGES:
                         return True
     return False
+
+def calculate_points_to_get(join_date):
+    pass

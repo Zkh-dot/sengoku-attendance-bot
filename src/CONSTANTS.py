@@ -1,3 +1,7 @@
+import dotenv
+import os
+dotenv.load_dotenv()
+
 GUILD_IDS = {1355240968621658242}
 DISBAND_MESSAGES = {'дизбанд', 'диз', 'disband', 'dis'}
 TREASURY_MESSAGES = {'казну', 'казна'}
@@ -6,7 +10,7 @@ TO_HOURS = 23
 NAME_LINE = r".*?<@&?(.*?)>.*?"
 REACTION_YES = '✅'
 REACTION_NO = '❌'
-MIN_USERS = 5
+MIN_USERS = 4
 TREASURY_POINTS = 15
 CHANNELS = {
     1355377613459161148: 3, # lfg
@@ -29,8 +33,13 @@ HIDDEN = {
 }
 POINTS_GROUP_MAP = 2
 RENTOR_NAME = 'Rentor'
-GROUP_MAP_NAMES = ['группики', 'групики']
-REACT_TO_MESSAGES = True
+GROUP_MAP_NAMES = ['группики', 'групики', 'карты']
+REACT_TO_MESSAGES = os.getenv("REACT_TO_MESSAGES")
+if REACT_TO_MESSAGES is None:
+    REACT_TO_MESSAGES = True
+else:
+    REACT_TO_MESSAGES = str(REACT_TO_MESSAGES).strip().lower() in ("1", "true", "yes", "y", "on")
+
 ADMIN_ROLES = {
     "Rentor": 0,
     "Officer": 2,

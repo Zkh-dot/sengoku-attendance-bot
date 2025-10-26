@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS USERS (
     visible INTEGER,
     timeout DATETIME,
     need_to_get INTEGER DEFAULT 45,
-    is_member INTEGER DEFAULT 1
+    is_member INTEGER DEFAULT 1,
+    join_date DATETIME
 );
         ''')
         self.cursor.execute('''
@@ -82,9 +83,10 @@ INSERT OR REPLACE INTO USERS (
                      visible,
                      timeout,
                      need_to_get,
-                     is_member
+                     is_member,
+                     join_date
                     )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 ''', (
         user.uuid,
         user.server_username,
@@ -93,7 +95,8 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         user.visible,
         user.timeout.isoformat() if user.timeout else None,
         user.need_to_get,
-        user.is_member
+        user.is_member,
+        user.join_date.isoformat() if user.join_date else None
     ))
         
     def add_branch_message(self, branch_message: datatypes.BranchMessage, parent_message_id: int):
