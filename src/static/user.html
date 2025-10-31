@@ -1,0 +1,22 @@
+<!doctype html>
+<h2>Контенты мембера</h2>
+<table>
+  <tr>
+    <th>Сообщение</th>
+    <th>Канал</th>
+    <th>Время</th>
+    <th>Отмена (✗ - диз / ✓ - провели)</th>
+    <th>Очки</th>
+    <th>Ссылка</th>
+  </tr>
+  {% for e in events %}
+    <tr>
+      <td>{{ (e['message_text'] or '')[:100] }}</td>
+      <td>{{ e['channel_name'] or '—' }}</td>
+      <td>{{ e['read_time'] or '—' }}</td>
+      <td style="text-align:center; font-weight:bold;">{% if e['disband'] == 1 %}✗{% else %}✓{% endif %}</td>
+      <td>{{ e['points'] or 0 }}</td>
+      <td><a href='https://discord.com/channels/{{ e['guild_id'] }}/{{ e['channel_id'] }}/{{ e['message_id'] }}' target='_blank'>Открыть</a></td>
+    </tr>
+  {% endfor %}
+</table>

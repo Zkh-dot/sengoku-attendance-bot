@@ -20,7 +20,7 @@ client = discord.Client(intents=intents)
 db_worker = dbw.DBWorker()
 lgr = logger.get_logger("collector")
 
-async def analyze_channel(channel_id: int, points: int, hide=False):
+async def analyze_channel(channel_id: int, points: int, hide=False, after: datetime = None, before: datetime = None):
     try:
         if not channel_id:
             raise RuntimeError("set DISCORD_CHANNEL_ID")
@@ -29,8 +29,8 @@ async def analyze_channel(channel_id: int, points: int, hide=False):
             channel = await client.fetch_channel(channel_id)
 
         now = datetime.now(timezone.utc)
-        after = now - timedelta(hours=CONSTANTS.FROM_HOURS)
-        before = now - timedelta(hours=CONSTANTS.TO_HOURS)
+        after = datetime.fromisoformat(os.getenv("SENGOKU_AFTER")) or (now - timedelta(hours=CONSTANTS.FROM_HOURS))
+        before = datetime.fromisoformat(os.getenv("SENGOKU_BEFORE")) or (now - timedelta(hours=CONSTANTS.TO_HOURS))
         # after = datetime(2025, 10, 1, 0, 1, tzinfo=timezone.utc)
         # before = datetime(2025, 10, 16, 0, 1, tzinfo=timezone.utc)
         lgr.info(f"analyzing channel {channel_id} from {after} to {before}")
@@ -67,10 +67,8 @@ async def analyze_channel(channel_id: int, points: int, hide=False):
             db_worker.add_event(event)
             try:
                 if CONSTANTS.REACT_TO_MESSAGES:
-                    if event.disband == 1:
-                        await m.add_reaction(CONSTANTS.REACTION_NO)
-                    else:
-                        await m.add_reaction(CONSTANTS.REACTION_YES)
+                    lgr.info(f"adding reaction to message {m.id}, disband={event.disband}")
+                    await m.add_reaction(CONSTANTS.REACTION_NO if event.disband == 1 else CONSTANTS.REACTION_YES)
             except Exception as e:
                 lgr.error(f"Failed to add reaction to message {m.id}: {e}")
         lgr.info(f"analyzed {n} messages in channel {channel_id}")
@@ -94,6 +92,7 @@ async def on_ready():
         await client.close()
         lgr.info("All done, client closed")
 
-if not TOKEN:
-    raise SystemExit("set DISCORD_TOKEN")
-client.run(TOKEN)
+if __name__ == "__main__":
+    if not TOKEN:
+        raise SystemExit("set DISCORD_TOKEN")
+    client.run(TOKEN)

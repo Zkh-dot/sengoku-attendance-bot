@@ -1,0 +1,167 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>{{ title }}</title>
+  <style>
+    body {
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    
+    .container {
+      width: 90%;
+      margin: 0 auto;
+      display: flex;
+      gap: 20px;
+    }
+    
+    .sidebar {
+      width: 180px;
+      flex-shrink: 0;
+      background-color: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 15px;
+    }
+    
+    .sidebar h3 {
+      color: #ffffff;
+      font-size: 16px;
+      margin: 0 0 12px 0;
+      text-align: center;
+    }
+    
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .sidebar li {
+      margin: 4px 0;
+    }
+    
+    .sidebar a {
+      color: #7aa2f7;
+      text-decoration: none;
+      font-size: 14px;
+      display: block;
+      padding: 4px 0;
+    }
+    
+    .sidebar a:hover {
+      text-decoration: underline;
+    }
+    
+    .sidebar a.active {
+      color: #00ff88;
+      font-weight: bold;
+    }
+    
+    .main-content {
+      flex: 1;
+      text-align: center;
+    }
+    
+    h1, h2 { 
+      color: #ffffff; 
+      margin-top: 0;
+    }
+    
+    p { 
+      color: #bbbbbb; 
+    }
+    
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 90%;
+      max-width: 1000px;
+      background-color: #2a2a2a;
+      border: 1px solid #444;
+    }
+    
+    th, td {
+      border: 1px solid #555;
+      padding: 10px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #333;
+    }
+    
+    tr:nth-child(even) { 
+      background-color: #242424; 
+    }
+    
+    tr:hover { 
+      background-color: #383838; 
+    }
+    
+    a { 
+      color: #7aa2f7; 
+      text-decoration: none; 
+    }
+    
+    a:hover { 
+      text-decoration: underline; 
+    }
+    
+    .highlight { 
+      color: #00ff88; 
+      font-weight: bold; 
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        order: 2;
+        margin-top: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <h3>История</h3>
+      <ul>
+        <li><a href="{{ url_for('index') }}" {% if not db_param %}class="active"{% endif %}>Текущий</a></li>
+        {% for arch in archives %}
+        <li><a href="{{ url_for('index') }}?db={{ arch.file }}" {% if db_param == arch.file %}class="active"{% endif %}>{{ arch.name }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="main-content">
+      <h1>{{ title }}</h1>
+      <p>{{ subtitle }}</p>
+      {{ content|safe }}
+    </div>
+  </div>
+  <script>
+    (function() {
+      function scheduleReload() {
+        const now = new Date()
+        const minutes = now.getMinutes()
+        const seconds = now.getSeconds()
+        let delay
+        if (minutes < 10) {
+          delay = ((10 - minutes) * 60 - seconds) * 1000
+        } else {
+          delay = ((70 - minutes) * 60 - seconds) * 1000
+        }
+        setTimeout(() => location.reload(), delay)
+      }
+      scheduleReload()
+    })();
+  </script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 import os
 import sqlite3
-from flask import Flask, g, render_template_string, url_for, abort
+import re
+from flask import Flask, g, render_template_string, request, url_for, abort
 import dotenv
 dotenv.load_dotenv()
 
@@ -10,183 +11,60 @@ DB_PATH = os.environ.get("DB_PATH", os.path.join(
     'sengoku_bot.db'
   ))
 
-BASE_HTML = """
-<!doctype html>
-<html>
-<head>
-  <meta charset='utf-8'>
-  <title>{{ title }}</title>
-  <style>
-    body {
-      background-color: #1e1e1e;
-      color: #e0e0e0;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 20px;
-    }
-    h1, h2 { color: #ffffff; }
-    p { color: #bbbbbb; }
-    table {
-      margin: 0 auto;
-      border-collapse: collapse;
-      width: 80%;
-      background-color: #2a2a2a;
-      border: 1px solid #444;
-    }
-    th, td {
-      border: 1px solid #555;
-      padding: 10px;
-      text-align: left;
-    }
-    th {
-      background-color: #333;
-    }
-    tr:nth-child(even) { background-color: #242424; }
-    tr:hover { background-color: #383838; }
-    a { color: #7aa2f7; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .highlight { color: #00ff88; font-weight: bold; }
-  </style>
-</head>
-<body>
-  <h1>{{ title }}</h1>
-  <p>{{ subtitle }}</p>
-  {{ content|safe }}
-  <script>
-    (function() {
-      function scheduleReload() {
-        const now = new Date()
-        const minutes = now.getMinutes()
-        const seconds = now.getSeconds()
-        let delay
-        if (minutes < 10) {
-          delay = ((10 - minutes) * 60 - seconds) * 1000
-        } else {
-          delay = ((70 - minutes) * 60 - seconds) * 1000
-        }
-        setTimeout(() => location.reload(), delay)
-      }
-      scheduleReload()
-    })();
-</script>
-</body>
-</html>
-"""
+ARCHIVE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'archives')
 
-INDEX_HTML = """
-<h2>Подсчет ведется с отставанием в 24 часа, т.е. сейчас посещения за последние 24 часа не отображаются.</h2>
-<br>Эта таблица в течение месяца - просто ориентир, чтобы вы примерно представляли, сколько вам нужно сходить на контент. В конце месяца будет точный подсчет очков и посещений, и если вы не наберете нужное количество очков, то будет кик.
-</br>
-<br>
-Если вам кажется, что какой-то на какой-то контент вы сходили, а он не учтен, напишите <span style="color:#fc0303; font-weight:bold;">@sscv</span> в личку
-</br>
-<h3>Пояснения по цветам:</h3>
-<ul style="list-style-type:none; padding:0;">
-  <li><span style="color:#00bfff; font-weight:bold;">Голубой</span> — не требуется набирать очки</li>
-  <li><span style="color:#888888; font-weight:bold;">Серый</span> — ливнул</li>
-  <li><span style="color:#00ff88; font-weight:bold;">Зелёный</span> — молодец</li>
-  <li><span style="color:#ffff00; font-weight:bold;">Жёлтый</span> — почти молодец (набрал ≥50% от цели)</li>
-  <li><span style="color:#e0e0e0; font-weight:bold;">Белый</span> — всё остальное</li>
-  <li><span style="color:#ffa500; font-weight:bold;">Оранжевый</span> — ментор</li>
-  <li><span style="color:#be03fc; font-weight:bold;">Фиолетовый</span> — рекрутер</li>
-  <li><span style="color:#fc0303; font-weight:bold;">Красный</span> — офицер</li>
-</ul>
-<ul style="list-style-type:none; padding:0;">
-  <td><a href='https://discordapp.com/channels/1355240968621658242/1369330940551106665' target='_blank'>📗┆правила-посещения</a></td>
-</ul>
-<table>
-  <tr>
-    <th>Ник</th>
-    <th>нажми на меня</th>
-    <th>Количество посещенного контента</th>
-    <th>Сумма очков</th>
-    <th>Цель (нужно набрать очков в этом месяце)</th>
-    <tr style="color: #310036; font-weight: bold; background-color: #999;">
-      <td>D9dka</td>
-      <td>—</td>
-      <td>∞</td>
-      <td>∞</td>
-      <td>0</td>
-    </tr>
-    {% for row in rows %}
-      {% set color = '' %}
-      {% if row['liable'] == 0 %}
-        {% set color = '#00bfff' %} {# голубой #}
-      {% elif row['liable'] == 2 %}
-        {% set color = '#fc0303' %} {# красный #}
-      {% elif row['liable'] == 3 %}
-        {% set color = '#ffa500' %} {# оранжевый #}
-      {% elif row['liable'] == 4 %}
-        {% set color = '#be03fc' %} {# фиолетовый #}
-      {% elif row['is_member'] == 0 %}
-        {% set color = '#888888' %} {# серый #}
-      {% elif row['total_points'] >= row['need_to_get'] %}
-        {% set color = '#00ff88' %} {# зелёный #}
-      {% elif row['total_points'] >= row['need_to_get'] * 0.5 %}
-        {% set color = '#ffff00' %} {# жёлтый #}
-      {% endif %}
-      <tr style="color: {{ color if color else '#e0e0e0' }}">
-        <td>{{ row['display_name'] or '—' }}</td>
-        <td><a href='{{ url_for('user_detail', uid=row['uid']) }}'>{{ row['uid'] }}</a></td>
-        <td>{{ row['event_count'] }}</td>
-        <td>{{ row['total_points'] or 0 }}</td>
-        <td>{{ row['need_to_get'] }}</td>
-      </tr>
-    {% endfor %}
-</table>
-"""
+with open(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'static', 'base.html'
+)) as f:
+    BASE_HTML = f.read()
 
-USER_HTML = """
-<h2>Контенты мембера</h2>
-<table>
-  <tr>
-    <th>Сообщение</th>
-    <th>Канал</th>
-    <th>Время</th>
-    <th>Отмена (✗ - диз / ✓ - провели)</th>
-    <th>Очки</th>
-    <th>Ссылка</th>
-  </tr>
-  {% for e in events %}
-    <tr>
-      <td>{{ (e['message_text'] or '')[:100] }}</td>
-      <td>{{ e['channel_name'] or '—' }}</td>
-      <td>{{ e['read_time'] or '—' }}</td>
-      <td style="text-align:center; font-weight:bold;">{% if e['disband'] == 1 %}✗{% else %}✓{% endif %}</td>
-      <td>{{ e['points'] or 0 }}</td>
-      <td><a href='https://discord.com/channels/{{ e['guild_id'] }}/{{ e['channel_id'] }}/{{ e['message_id'] }}' target='_blank'>Открыть</a></td>
-    </tr>
-  {% endfor %}
-</table>
-"""
+with open(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'static', 'index.html'
+)) as f:
+    INDEX_HTML = f.read()
 
-TECHNICAL_TIMEOUT_HTML = """
-<!doctype html>
-<html>
-<head>
-  <meta charset='utf-8'>
-  <title>Пока не работает</title>
-  <style>
-    body {
-      background-color: #1e1e1e;
-      color: #e0e0e0;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 { color: #ffffff; }
-    p { color: #bbbbbb; }
-  </style>
-</head>
-"""
+with open(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'static', 'user.html'
+)) as f:
+    USER_HTML = f.read()
 
-def get_db():
-    if 'db' not in g:
-        g.db = sqlite3.connect(DB_PATH)
-        g.db.row_factory = sqlite3.Row
-    return g.db
+with open(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'static', 'timeout.html'
+)) as f:
+    TECHNICAL_TIMEOUT_HTML = f.read()
+
+def get_archives():
+    if not os.path.exists(ARCHIVE_DIR):
+        return []
+    files = [f for f in os.listdir(ARCHIVE_DIR) if f.endswith('.db')]
+    archives = []
+    for f in files:
+        base = f[:-3]
+        if re.match(r'^[a-z]+_\d{4}$', base):
+            parts = base.split('_')
+            month, year = parts
+            name = f"{month.capitalize()} {year}"
+            archives.append({'file': base, 'name': name})
+    archives.sort(key=lambda x: x['file'], reverse=True)
+    return archives
+
+def get_db(db_path=None):
+    # Use a cache dictionary inside g
+    if not hasattr(g, '_db_cache'):
+        g._db_cache = {}
+
+    key = db_path or "default"
+    if key not in g._db_cache:
+        path = db_path or DB_PATH
+        conn = sqlite3.connect(path)
+        conn.row_factory = sqlite3.Row
+        g._db_cache[key] = conn
+
+    return g._db_cache[key]
 
 @app.teardown_appcontext
 def close_db(exception):
@@ -196,9 +74,22 @@ def close_db(exception):
 
 @app.route('/')
 def index():
+    db_param = request.args.get('db')
+    db_path = None
+    history_title = None
+    if db_param:
+        # Validate to prevent path traversal
+        if not re.match(r'^[a-z]+_\d{4}$', db_param):
+            abort(404)
+        db_path = os.path.join(ARCHIVE_DIR, f"{db_param}.db")
+        if not os.path.exists(db_path):
+            abort(404)
+        history_title = ' '.join([word.capitalize() for word in db_param.split('_')])
+    
     if os.getenv("TECHNICAL_TIMEOUT", "0") == "1":
         return render_template_string(TECHNICAL_TIMEOUT_HTML + "<body><h1>Ведутся технические работы</h1><p>Извините за неудобства, скоро всё починим.</p></body></html>")
-    db = get_db()
+    
+    db = get_db(db_path)
     q = db.execute("""
       SELECT u.uid,
            COALESCE(NULLIF(u.server_username, ''), u.global_username) AS display_name,
@@ -215,12 +106,31 @@ def index():
       ORDER BY total_points DESC, event_count DESC, display_name COLLATE NOCASE ASC
     """)
     rows = q.fetchall()
-    html = render_template_string(INDEX_HTML, rows=rows)
-    return render_template_string(BASE_HTML, title='мемберы × контент', subtitle=f'Всего мемберов: {len(rows)}', content=html)
+    
+    archives = get_archives()
+    
+    subtitle = f'Всего мемберов: {len(rows)}'
+    if history_title:
+        subtitle = f'Historical Data: {history_title} | {subtitle}'
+    
+    html = render_template_string(INDEX_HTML, rows=rows, db_param=db_param)
+    return render_template_string(BASE_HTML, title='мемберы × контент', subtitle=subtitle, content=html, archives=archives, db_param=db_param)
+
 
 @app.route('/user/<int:uid>')
 def user_detail(uid):
-    db = get_db()
+    db_param = request.args.get('db')
+    db_path = None
+    history_title = None
+    if db_param:
+        if not re.match(r'^[a-z]+_\d{4}$', db_param):
+            abort(404)
+        db_path = os.path.join(ARCHIVE_DIR, f"{db_param}.db")
+        if not os.path.exists(db_path):
+            abort(404)
+        history_title = ' '.join([word.capitalize() for word in db_param.split('_')])
+    
+    db = get_db(db_path)
     uq = db.execute("SELECT uid, COALESCE(NULLIF(global_username, ''), server_username) AS display_name FROM USERS WHERE uid=?", (uid,))
     user = uq.fetchone()
     if not user:
@@ -241,11 +151,17 @@ def user_detail(uid):
             events[i]['channel_id'] = 0
             events[i]['message_id'] = 0
             events[i]['guild_id'] = 0
+    
+    archives = get_archives()
+    
+    subtitle = f"Сходил на {len(events)} контентов (✓ — проведенные, ✗ — дизбанднутые)"
+    if history_title:
+        subtitle = f"{subtitle} (Historical: {history_title})"
+    
+    html = render_template_string(USER_HTML, events=events, db_param=db_param)
+    return render_template_string(BASE_HTML, title=f"{user['display_name'] or 'без имени'}", subtitle=subtitle, content=html, archives=archives, db_param=db_param)
 
-    html = render_template_string(USER_HTML, events=events)
-    return render_template_string(BASE_HTML, title=f"{user['display_name'] or 'без имени'}", subtitle=f"Сходил на {len(events)} контентов (✓ — проведенные, ✗ — дизбанднутые)", content=html)
 
-# Respect reverse-proxy headers and prefix
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 class PrefixMiddleware:
