@@ -85,7 +85,7 @@ def index():
         if not os.path.exists(db_path):
             abort(404)
         history_title = ' '.join([word.capitalize() for word in db_param.split('_')])
-    
+
     if os.getenv("TECHNICAL_TIMEOUT", "0") == "1":
         return render_template_string(TECHNICAL_TIMEOUT_HTML + "<body><h1>Ведутся технические работы</h1><p>Извините за неудобства, скоро всё починим.</p></body></html>")
     

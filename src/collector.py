@@ -96,3 +96,5 @@ if __name__ == "__main__":
     if not TOKEN:
         raise SystemExit("set DISCORD_TOKEN")
     client.run(TOKEN)
+    datatypes.Website().open()
+

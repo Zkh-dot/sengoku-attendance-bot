@@ -1,5 +1,7 @@
 import datetime
+import os
 
+from monthly_results import SCRIPT_DIR
 class User:
     uuid: int
     server_username: str
@@ -85,3 +87,25 @@ class Event:
         self.guild_id = guild_id
         self.points = points
         self.hidden = hidden
+
+
+class Website():
+    def __init__(self, SCRIPT_DIR=os.path.dirname(os.path.abspath(__file__)), PM2_WEBSITE_NAME=os.getenv("PM2_WEBSITE_NAME", "sengoku-website")):
+        with open(os.path.join(os.path.dirname(SCRIPT_DIR), ".env")) as f:
+            lines = f.readlines()
+            if "TECHNICAL_TIMEOUT" in lines[-1]:
+                lines = lines[:-1]
+            self.env_content = "".join(lines)
+        self.PM2_WEBSITE_NAME = PM2_WEBSITE_NAME
+
+    def _set_technical_timeout(self, timeout_value):
+        with open(os.path.join(os.path.dirname(SCRIPT_DIR), ".env"), 'w') as f:
+            f.write(self.env_content + f"\nTECHNICAL_TIMEOUT='{timeout_value}'")
+
+    def open(self):
+        self._set_technical_timeout('0')
+        os.system(f"pm2 restart {self.PM2_WEBSITE_NAME}")
+
+    def close(self):
+        self._set_technical_timeout('1')
+        os.system(f"pm2 restart {self.PM2_WEBSITE_NAME}")
