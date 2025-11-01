@@ -1,5 +1,6 @@
 import dotenv
 import os
+from datetime import date
 dotenv.load_dotenv()
 
 GUILD_IDS = {1355240968621658242}
@@ -20,7 +21,7 @@ CHANNELS = {
     1389934518403731507: 2, # group-maps
     1355377749828567040: 3, # ava-dungeon
     1363140680985346242: 5, # zvz 12 utc
-    1397112047803699311: 5, # zvz 14 utc
+    1397112047803699311: 5, # zvz 14 utccommon
     1397112122021773334: 5, # zvz 16 utc
     1397112176522559582: 5, # zvz 18 utc
     1419352914258038805: 5, # zvz fast mass
@@ -46,3 +47,4 @@ ADMIN_ROLES = {
     "Mentor": 3,
     "Recruiter": 4
 }
+TODAY = date.today()

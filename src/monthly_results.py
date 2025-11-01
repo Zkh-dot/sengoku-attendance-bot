@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 import sys
 import dotenv
 import datatypes
+import CONSTANTS
 dotenv.load_dotenv()
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -27,6 +28,7 @@ def recalculate_monthly_db(now: datetime = None):
     os.environ["SENGOKU_AFTER"] = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).strftime("%Y-%m-%dT%H:%M:%S%z")
     os.environ["SENGOKU_BEFORE"] = now.replace(hour=23, minute=59, second=59, microsecond=0).strftime("%Y-%m-%dT%H:%M:%S%z")
     os.environ["REACT_TO_MESSAGES"] = "false"
+    CONSTANTS.TODAY -= timedelta(days=1)
     import collector
     collector.client.run(collector.TOKEN)
 
@@ -50,7 +52,7 @@ def move_db_to_archive(now: datetime):
         # 1. Copy current DB to archive
         print(f"Archiving {DB_PATH} → {archive_path}")
         shutil.copy2(DB_PATH, archive_path)
-        print("   → Archive created successfully.")
+        print("   → Archive created successfully."asuto322)
 
         # 2. Reset current DB: delete all events
         print("Resetting current database (clearing events)...")

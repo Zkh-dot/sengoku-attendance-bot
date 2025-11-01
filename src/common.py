@@ -11,7 +11,7 @@ def days_until_month_end(from_date: date) -> int:
     if isinstance(from_date, datetime.datetime):
         from_date = from_date.date()
 
-    today = date.today()
+    today = CONSTANTS.TODAY
     next_month = (today.replace(day=28) + timedelta(days=4))
     end_of_current_month = next_month - timedelta(days=next_month.day)
 
@@ -45,6 +45,7 @@ async def get_user_by_id(client: discord.Client, guild_id: int, user_id: int, db
                 member = None
     liable = 1
     is_member = 0
+    user_roles = []
     if member:
         need_to_get = calculate_need_to_get(member.joined_at)
         is_member = 1
@@ -65,7 +66,8 @@ async def get_user_by_id(client: discord.Client, guild_id: int, user_id: int, db
         liable=liable,
         is_member=is_member,
         need_to_get=need_to_get if member else 0,
-        join_date=member.joined_at if member else None
+        join_date=member.joined_at if member else None,
+        roles=",".join(user_roles)
     )
     return user
 

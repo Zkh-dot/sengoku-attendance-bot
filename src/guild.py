@@ -24,6 +24,7 @@ async def get_nicks(guild_id: int):
             user.global_username = m.global_name
             user.server_username = m.display_name
             user.join_date = m.joined_at
+            user.roles = ",".join([r.name for r in m.roles if r.name != "@everyone"])
             user.need_to_get = common.calculate_need_to_get(user.join_date)
         else:
             user = datatypes.User(
@@ -31,7 +32,8 @@ async def get_nicks(guild_id: int):
                 m.display_name,
                 m.global_name,
                 join_date=m.joined_at,
-                need_to_get=common.calculate_need_to_get(m.joined_at)
+                need_to_get=common.calculate_need_to_get(m.joined_at),
+                roles = ",".join([r.name for r in m.roles if r.name != "@everyone"])
             )
         db_worker.add_user(user)
 

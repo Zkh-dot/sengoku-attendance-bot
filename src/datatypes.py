@@ -21,7 +21,8 @@ class User:
                 timeout: str = None,
                 need_to_get: int = 45,
                 is_member: int = 1,
-                join_date: datetime.datetime = None):
+                join_date: datetime.datetime = None,
+                roles: str = ""):
         self.uuid = uuid
         self.server_username = server_username
         self.global_username = global_username
@@ -30,6 +31,7 @@ class User:
         self.need_to_get = need_to_get
         self.is_member = is_member
         self.join_date = join_date
+        self.roles = roles
         if timeout:
             self.timeout = datetime.datetime.fromisoformat(timeout)
         else:
