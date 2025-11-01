@@ -13,12 +13,14 @@ import sys
 import dotenv
 import datatypes
 import CONSTANTS
+import logger
 dotenv.load_dotenv()
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(SCRIPT_DIR, 'sengoku_bot.db')
 ARCHIVE_DIR = os.path.join(SCRIPT_DIR, 'archives')
 PM2_WEBSITE_NAME = os.getenv("PM2_WEBSITE_NAME", "sengoku-website")
+lgr = logger.get_logger("collector")
 
 # Create archives directory if it doesn't exist
 os.makedirs(ARCHIVE_DIR, exist_ok=True)
@@ -34,7 +36,7 @@ def recalculate_monthly_db(now: datetime = None):
 
 def move_db_to_archive(now: datetime):
     if not os.path.exists(DB_PATH):
-        print(f"Error: Database not found at {DB_PATH}")
+        lgr.info(f"Error: Database not found at {DB_PATH}")
         sys.exit(1)
 
     # Generate filename: october_2025.db
@@ -45,24 +47,23 @@ def move_db_to_archive(now: datetime):
 
     # Prevent overwriting existing archive
     if os.path.exists(archive_path):
-        print(f"Error: Archive already exists: {archive_path}")
-        print("    This usually means the script ran twice this month.")
+        lgr.info(f"Error: Archive already exists: {archive_path}")
+        lgr.info("    This usually means the script ran twice this month.")
 
     try:
         # 1. Copy current DB to archive
-        print(f"Archiving {DB_PATH} → {archive_path}")
+        lgr.info(f"Archiving {DB_PATH} → {archive_path}")
         shutil.copy2(DB_PATH, archive_path)
-        print("   → Archive created successfully."asuto322)
 
         # 2. Reset current DB: delete all events
-        print("Resetting current database (clearing events)...")
+        lgr.info("Resetting current database (clearing events)...")
         os.remove(DB_PATH)
 
     except Exception as e:
-        print(f"Error during archiving/reset: {e}")
+        lgr.info(f"Error during archiving/reset: {e}")
         sys.exit(1)
 
-    print(f"Monthly archive complete: {archive_filename}")
+    lgr.info(f"Monthly archive complete: {archive_filename}")
 
 def main():
     now = datetime.now() - timedelta(days=1)
