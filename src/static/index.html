@@ -26,6 +26,11 @@
   </p>
 </div>
 
+<div class="filter-bar">
+  <input id="nickFilter" type="text" placeholder="Поиск по нику…" autocomplete="off" />
+  <button id="clearFilter" type="button" title="Сбросить">×</button>
+</div>
+
 <table>
   <thead>
     <tr>
@@ -89,6 +94,41 @@
   margin-right: auto;
 }
 
+.filter-bar {
+  width: 90%;
+  max-width: 1000px;
+  margin: 0 auto 10px auto;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+#nickFilter {
+  flex: 1;
+  background-color: #2a2a2a;
+  color: #e0e0e0;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 8px 10px;
+}
+
+#nickFilter::placeholder {
+  color: #888;
+}
+
+#clearFilter {
+  background-color: #333;
+  color: #e0e0e0;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+#clearFilter:hover {
+  background-color: #3d3d3d;
+}
+
 .info-section h2 {
   margin-top: 0;
   font-size: 18px;
@@ -126,3 +166,32 @@
   }
 }
 </style>
+
+<script>
+  (function() {
+    const input = document.getElementById('nickFilter')
+    const clearBtn = document.getElementById('clearFilter')
+    const table = document.querySelector('table')
+    if (!input || !table) return
+
+    const tbody = table.querySelector('tbody')
+    function applyFilter() {
+      const value = (input.value || '').trim().toLowerCase()
+      const rows = tbody.querySelectorAll('tr')
+      rows.forEach(function(row) {
+        const firstCell = row.querySelector('td')
+        if (!firstCell) return
+        const nick = (firstCell.textContent || '').toLowerCase()
+        const match = value === '' || nick.indexOf(value) !== -1
+        row.style.display = match ? '' : 'none'
+      })
+    }
+
+    input.addEventListener('input', applyFilter)
+    clearBtn.addEventListener('click', function() {
+      input.value = ''
+      input.focus()
+      applyFilter()
+    })
+  })();
+</script>
