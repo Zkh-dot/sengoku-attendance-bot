@@ -1,5 +1,5 @@
 import os
-import asyncio
+import sys
 import discord
 from datetime import datetime, timedelta, timezone
 import dotenv
@@ -29,9 +29,15 @@ async def analyze_channel(channel_id: int, points: int, hide=False, after: datet
             channel = await client.fetch_channel(channel_id)
 
         now = datetime.now(timezone.utc)
-        after = datetime.fromisoformat(os.getenv("SENGOKU_AFTER")) or (now - timedelta(hours=CONSTANTS.FROM_HOURS))
-        before = datetime.fromisoformat(os.getenv("SENGOKU_BEFORE")) or (now - timedelta(hours=CONSTANTS.TO_HOURS))
-        # after = datetime(2025, 10, 1, 0, 1, tzinfo=timezone.utc)
+        try:
+            after = datetime.fromisoformat(os.getenv("SENGOKU_AFTER", "")) if os.getenv("SENGOKU_AFTER") else (now - timedelta(hours=CONSTANTS.FROM_HOURS))
+        except ValueError:
+            after = now - timedelta(hours=CONSTANTS.FROM_HOURS)
+        try:
+            before = datetime.fromisoformat(os.getenv("SENGOKU_BEFORE", "")) if os.getenv("SENGOKU_BEFORE") else (now - timedelta(hours=CONSTANTS.TO_HOURS))
+        except ValueError:
+            before = now - timedelta(hours=CONSTANTS.TO_HOURS)
+        # after = datetime(2025, 11, 1, 0, 1, tzinfo=timezone.utc)
         # before = datetime(2025, 10, 16, 0, 1, tzinfo=timezone.utc)
         lgr.info(f"analyzing channel {channel_id} from {after} to {before}")
         n = 0
@@ -73,8 +79,13 @@ async def analyze_channel(channel_id: int, points: int, hide=False, after: datet
                 lgr.error(f"Failed to add reaction to message {m.id}: {e}")
         lgr.info(f"analyzed {n} messages in channel {channel_id}")
     except Exception as e:
-        lgr.error(f"Error analyzing channel {channel_id}: {e}")
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        lgr.error(f"Error analyzing channel {channel_id}: {e}, {exc_type}, {fname}, {exc_tb.tb_lineno}")
 
+async def analyze_usefulness_points(after: datetime = None, before: datetime = None):
+    # Placeholder for future implementation
+    pass
 
 @client.event
 async def on_ready():

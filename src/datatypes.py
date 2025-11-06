@@ -65,6 +65,7 @@ class Event:
     branch_messages: list[BranchMessage]
     hidden: bool = False
     guild_id: int | None = None
+    usefull_event: bool = 0
     def __init__(self,
                 message_id: int,
                 message_text: str,
@@ -76,7 +77,8 @@ class Event:
                 channel_name: str | None = None,
                  guild_id: int | None = None,
                  points: int = 0,
-                 hidden: bool = False):
+                 hidden: bool = False,
+                 usefill_event: bool = False):
         self.message_id = message_id
         self.message_text = message_text
         self.disband = disband
@@ -89,6 +91,7 @@ class Event:
         self.guild_id = guild_id
         self.points = points
         self.hidden = hidden
+        self.usefull_event = usefill_event
 
 
 class Website():

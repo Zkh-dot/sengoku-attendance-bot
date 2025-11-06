@@ -4,5 +4,5 @@ __pycache__/
 *.db
 *.log
 *.sh
-channels.txt
+*.txt
 *temp*
