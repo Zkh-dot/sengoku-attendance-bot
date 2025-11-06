@@ -118,7 +118,7 @@ VALUES (?, ?)
     def add_event(self, event: datatypes.Event):
         self.add_user(event.author)
         self.execute('''
-INSERT OR REPLACE INTO EVENTS (message_id, author_user_id, message_text, disband, read_time, channel_id, channel_name, guild_id, points, hidden)
+INSERT OR REPLACE INTO EVENTS (message_id, author_user_id, message_text, disband, read_time, channel_id, channel_name, guild_id, points, hidden, usefull_event)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ''', (
         event.message_id,
