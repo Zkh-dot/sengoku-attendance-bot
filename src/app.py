@@ -52,7 +52,7 @@ def get_archives():
     archives.sort(key=lambda x: x['file'], reverse=True)
     return archives
 
-def get_db(db_path=None):
+def get_db(db_path=None) -> sqlite3.Connection:
     # Use a cache dictionary inside g
     if not hasattr(g, '_db_cache'):
         g._db_cache = {}

@@ -24,10 +24,6 @@ CHANNELS = {
     1419352914258038805: 5, # zvz fast mass
 }
 
-USEFULL_CHANNELS = {
-    1433844278953513111: 1
-}
-
 HIDDEN = {
     1345611337559965737: 3, # gru-morning
     1345611509127970906: 3, # gru-day
@@ -43,6 +39,13 @@ if REACT_TO_MESSAGES is None:
 else:
     REACT_TO_MESSAGES = str(REACT_TO_MESSAGES).strip().lower() in ("1", "true", "yes", "y", "on")
 
+MONTHLY_CALC = os.getenv("MONTHLY_CALC")
+if MONTHLY_CALC is None:
+    MONTHLY_CALC = True
+else:
+    MONTHLY_CALC = str(MONTHLY_CALC).strip().lower() in ("1", "true", "yes", "y", "on")
+
+REPORT_CHANNEL_ID = 1355432420320739429
 ADMIN_ROLES = {
     "Rentor": 0,
     "Officer": 2,

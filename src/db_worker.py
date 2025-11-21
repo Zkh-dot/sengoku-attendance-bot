@@ -2,6 +2,7 @@ import sqlite3
 import datetime
 import datatypes
 import os
+import pandas as pd
 class DBWorker:
     def __init__(self, db_path: str = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
@@ -74,6 +75,30 @@ CREATE TABLE IF NOT EXISTS BRANCH_MESSAGES (
 
     def close(self):
         self.conn.close()
+
+    def get_user_info(self) -> list[datatypes.User]:
+        data = self.cursor.execute("""
+      SELECT u.uid,
+           COALESCE(NULLIF(u.server_username, ''), u.global_username) AS display_name,
+           u.liable,
+           COUNT(DISTINCT CASE WHEN e.disband != 1 THEN e.message_id END) AS event_count,
+           COALESCE(SUM(CASE WHEN e.disband != 1 THEN e.points ELSE 0 END), 0) AS total_points,
+           u.need_to_get,
+           u.is_member
+      FROM USERS u
+      LEFT JOIN EVENTS_TO_USERS etu ON etu.ds_uid = u.uid
+      LEFT JOIN EVENTS e ON e.message_id = etu.message_id
+      WHERE COALESCE(NULLIF(u.server_username, ''), u.global_username) != 'D9dka'
+      GROUP BY u.uid
+      ORDER BY total_points DESC, event_count DESC, display_name COLLATE NOCASE ASC
+    """)
+        return data.fetchall()
+    
+    def load_database_as_dataframe(self) -> pd.DataFrame:
+        data = self.get_user_info()
+        columns = ['uid', 'display_name', 'liable', 'event_count', 'total_points', 'need_to_get', 'is_member']
+        df = pd.DataFrame(data, columns=columns)
+        return df
 
     def add_user(self, user: datatypes.User):
         self.execute('''

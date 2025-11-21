@@ -30,6 +30,7 @@ def recalculate_monthly_db(now: datetime = None):
     os.environ["SENGOKU_AFTER"] = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).strftime("%Y-%m-%dT%H:%M:%S%z")
     os.environ["SENGOKU_BEFORE"] = now.replace(hour=23, minute=59, second=59, microsecond=0).strftime("%Y-%m-%dT%H:%M:%S%z")
     os.environ["REACT_TO_MESSAGES"] = "false"
+    os.environ["MONTHLY_CALC"] = "true"
     CONSTANTS.TODAY -= timedelta(days=1)
     import collector
     collector.client.run(collector.TOKEN)

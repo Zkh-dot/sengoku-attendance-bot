@@ -8,6 +8,8 @@ import common
 import CONSTANTS
 import db_worker as dbw
 import logger
+import pandas as pd
+from io import BytesIO
 dotenv.load_dotenv()
 
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -97,6 +99,18 @@ async def on_ready():
         for ch in CONSTANTS.HIDDEN:
             await analyze_channel(ch, CONSTANTS.HIDDEN[ch], hide=True)
             lgr.info(f"analyzed hidden channel {ch}")
+        if CONSTANTS.MONTHLY_CALC:
+            channel = client.get_channel(CONSTANTS.REPORT_CHANNEL_ID)
+            df = db_worker.load_database_as_dataframe()
+
+            with BytesIO() as buffer:
+                with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+                    df.to_excel(writer, index=False, sheet_name='Data')
+                buffer.seek(0)
+                excel_file = discord.File(fp=buffer, filename="database.xlsx")
+
+            await channel.send("файлик с посещениями:", file=excel_file)
+            
     except Exception as e:
         import traceback; traceback.print_exc()
     finally:
