@@ -41,7 +41,7 @@ else:
 
 MONTHLY_CALC = os.getenv("MONTHLY_CALC")
 if MONTHLY_CALC is None:
-    MONTHLY_CALC = True
+    MONTHLY_CALC = False
 else:
     MONTHLY_CALC = str(MONTHLY_CALC).strip().lower() in ("1", "true", "yes", "y", "on")
 
