@@ -34,6 +34,7 @@
 <table>
   <thead>
     <tr>
+      <th>№</th>
       <th>Ник</th>
       <th>нажми на меня</th>
       <th>Количество посещенного контента</th>
@@ -44,6 +45,7 @@
   <tbody>
     <!-- D9dka — special row -->
     <tr style="color: #310036; font-weight: bold; background-color: #999;">
+      <td>∞</td>
       <td>D9dka</td>
       <td>—</td>
       <td>∞</td>
@@ -71,6 +73,7 @@
       {% endif %}
 
       <tr style="color: {{ color if color else '#e0e0e0' }}">
+        <td>{{ loop.index }}</td>
         <td>{{ row['display_name'] or '—' }}</td>
         <td>
           <a href="{{ url_for('user_detail', uid=row['uid']) }}{% if db_param %}?db={{ db_param }}{% endif %}">
@@ -179,9 +182,9 @@
       const value = (input.value || '').trim().toLowerCase()
       const rows = tbody.querySelectorAll('tr')
       rows.forEach(function(row) {
-        const firstCell = row.querySelector('td')
-        if (!firstCell) return
-        const nick = (firstCell.textContent || '').toLowerCase()
+        const cells = row.querySelectorAll('td')
+        if (cells.length < 2) return
+        const nick = (cells[1].textContent || '').toLowerCase()
         const match = value === '' || nick.indexOf(value) !== -1
         row.style.display = match ? '' : 'none'
       })
