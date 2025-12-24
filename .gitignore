@@ -6,3 +6,6 @@ __pycache__/
 *.sh
 *.txt
 *temp*
+photoes/*
+*.png
+*.csv

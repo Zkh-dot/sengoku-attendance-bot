@@ -32,7 +32,7 @@ def get_prices(item: Item) -> pd.DataFrame:
 
     data = {
         "action": "adv_get_chart_data",
-        "nonce": "665a8589ad",
+        "nonce": "3cbc0e3fee",
         "item_id": str(item),
         "server": "europe",
 }
@@ -42,7 +42,6 @@ def get_prices(item: Item) -> pd.DataFrame:
     j = r.json()
 
     rows = []
-    print("responce json:", j, "code:", r.status_code)
     try:
         for entry in j["data"]:
         
