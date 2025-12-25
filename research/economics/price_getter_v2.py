@@ -138,7 +138,7 @@ def build_prices_df_from_txt_and_api(
 
         if sleep_s > 0:
             time.sleep(sleep_s)
-        if df_one:
+        if not df_one.empty:
             df_one.to_csv(f"{item_id}.csv")
 
     if not frames:
