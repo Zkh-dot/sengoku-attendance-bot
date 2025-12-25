@@ -5,7 +5,10 @@ import pandas as pd
 
 def parse_items_txt_to_df(path: str) -> pd.DataFrame:
     line_re = re.compile(r"^\s*\d+\s*:\s*(T\d+_[A-Z0-9_]+(?:@\d+)?)\s*:\s*(.*?)\s*$")
-    id_re = re.compile(r"^T(?P<level>\d+)_(?P<name>[A-Z0-9_]+?)(?:@(?P<ench>\d+))?$")
+    id_re = re.compile(
+        r"^T(?P<level>\d+)_(?P<name>[A-Z0-9_]+?)(?:_LEVEL\d+)?(?:@(?P<ench>\d+))?$"
+    )
+
 
     rows = []
     with open(path, "r", encoding="utf-8") as f:
@@ -26,14 +29,48 @@ def parse_items_txt_to_df(path: str) -> pd.DataFrame:
     return pd.DataFrame(rows, columns=["item_id", "item_name", "level", "enchantment"]).drop_duplicates("item_id")
 
 
-def fetch_history_for_item(session: requests.Session, base_url: str, item_id: str, date: str, time_scale: int) -> list[dict]:
+from datetime import datetime, timedelta, timezone
+import requests
+
+def fetch_history_for_item(
+    session: requests.Session,
+    base_url: str,
+    item_id: str,
+    date: str,
+    time_scale: int
+) -> list[dict]:
     url = f"{base_url}/api/v2/stats/history/{item_id}"
-    r = session.get(url, params={"date": date, "time-scale": time_scale}, timeout=30)
-    r.raise_for_status()
-    data = r.json()
-    if not isinstance(data, list):
-        return []
-    return data
+
+    start = datetime.strptime(date, "%d-%m-%Y")
+    end = datetime.now()
+
+    all_data: list[dict] = []
+
+    chunk = timedelta(days=5)
+    current_start = start
+
+    while current_start < end:
+        print(item_id, ":", current_start)
+        current_end = min(current_start + chunk, end)
+
+        params = {
+            "date": current_start.isoformat(),
+            "end_date": current_end.isoformat(),
+            "time-scale": time_scale,
+        }
+
+        r = session.get(url, params=params, timeout=30)
+        r.raise_for_status()
+        data = r.json()
+
+        if isinstance(data, list):
+            all_data.extend(data)
+
+        current_start = current_end
+        time.sleep(1)
+
+    return all_data
+
 
 
 def history_json_to_df(payload: list[dict]) -> pd.DataFrame:
@@ -92,14 +129,17 @@ def build_prices_df_from_txt_and_api(
             payload = fetch_history_for_item(session, base_url, item_id, date, time_scale)
             df_one = history_json_to_df(payload)
             if not df_one.empty:
-                frames.append(df_one)
-        except requests.HTTPError:
-            pass
-        except requests.RequestException:
-            pass
+                # frames.append(df_one)
+                pass
+        except requests.HTTPError as e:
+            print(e)
+        except requests.RequestException as e:
+            print(e)
 
         if sleep_s > 0:
             time.sleep(sleep_s)
+        if df_one:
+            df_one.to_csv(f"{item_id}.csv")
 
     if not frames:
         prices_df = pd.DataFrame(columns=["location", "item_id", "quality", "item_count", "price_avg", "timestamp"])
@@ -110,7 +150,9 @@ def build_prices_df_from_txt_and_api(
 
     missing_level = out["level"].isna() if "level" in out.columns else pd.Series(False, index=out.index)
     if missing_level.any():
-        id_re = re.compile(r"^T(?P<level>\d+)_(?P<name>[A-Z0-9_]+?)(?:@(?P<ench>\d+))?$")
+        id_re = re.compile(
+            r"^T(?P<level>\d+)_(?P<name>[A-Z0-9_]+?)(?:_LEVEL\d+)?(?:@(?P<ench>\d+))?$"
+        )
         extracted = out.loc[missing_level, "item_id"].astype(str).str.extract(id_re)
         out.loc[missing_level, "level"] = pd.to_numeric(extracted["level"], errors="coerce").astype("Int64")
         out.loc[missing_level, "item_name"] = extracted["name"]
@@ -125,9 +167,8 @@ def build_prices_df_from_txt_and_api(
 
 if __name__ == "__main__":
     df = build_prices_df_from_txt_and_api(
-        "items.txt",
+        "/home/scv/code/sengoku-attendance-bot/research/economics/items.txt",
         date="01-06-2025",
-        time_scale=1,
-        sleep_s=0.05,
+        time_scale=1
     )
-    print(df.head())
+    df.to_csv("really_all.csv")
