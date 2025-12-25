@@ -166,10 +166,13 @@ def build_prices_df_from_txt_and_api(
 
     return out
 
+import os, dotenv
+
+dotenv.load_dotenv()
 
 if __name__ == "__main__":
     df = build_prices_df_from_txt_and_api(
-        "/home/scv/code/sengoku-attendance-bot/research/economics/items.txt",
+        os.environ["ITEMS_PATH"],
         date="01-06-2025",
         time_scale=24
     )
