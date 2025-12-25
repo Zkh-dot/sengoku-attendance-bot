@@ -50,7 +50,7 @@ def fetch_history_for_item(
     current_start = start
 
     while current_start < end:
-        print(item_id, ":", current_start)
+        print(item_id, ":", current_start, end = ' ')
         current_end = min(current_start + chunk, end)
 
         params = {
@@ -64,8 +64,10 @@ def fetch_history_for_item(
         data = r.json()
 
         if isinstance(data, list):
+            print(len(data))
             all_data.extend(data)
-
+        else:
+            print("0")
         current_start = current_end
         time.sleep(1)
 
