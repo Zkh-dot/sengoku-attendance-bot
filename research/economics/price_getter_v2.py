@@ -54,8 +54,8 @@ def fetch_history_for_item(
         current_end = min(current_start + chunk, end)
 
         params = {
-            "date": current_start.isoformat(),
-            "end_date": current_end.isoformat(),
+            "date": current_start.strftime("%-m-%-d-%Y"),
+            "end_date": current_end.strftime("%-m-%-d-%Y"),
             "time-scale": time_scale,
         }
 
@@ -171,6 +171,6 @@ if __name__ == "__main__":
     df = build_prices_df_from_txt_and_api(
         "/home/scv/code/sengoku-attendance-bot/research/economics/items.txt",
         date="01-06-2025",
-        time_scale=1
+        time_scale=24
     )
     df.to_csv("really_all.csv")
